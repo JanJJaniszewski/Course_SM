@@ -1,0 +1,45 @@
+---
+title: "W1_main"
+author: "Group3"
+date: "10/26/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(rlist)
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(0)
+```
+
+```{r}
+load("../../Week_1/Data/Airq_numeric.RData")
+is.matrix(Airq)
+```
+
+```{r}
+y <- Airq[,1]
+X <- Airq[,-1]
+X <- scale(X)
+X <- cbind(X, 1)
+
+b <- matrix(rep(c(1111),times=dim(X)[2]))
+iterations <- list(b)
+
+yty <- t(y) %*% y # y squared
+XtX <- t(X) %*% X # X squared
+Xty <- t(X) %*% y # Y * X
+error <- yty + t(b) %*% XtX %*% b - 2 * t(b) %*% Xty
+e <- 0.0001 * error
+lambda_max <- XtX %>% max
+i = 0
+
+while (error > e){
+  b <- b - (lambda_max ^ -1) * XtX %*% b + (lambda_max ^ -1) * Xty
+  i <- i+1
+  error <- yty + t(b) %*% XtX %*% b - 2 * t(b) %*% Xty
+  iterations <- list.append(iterations, b)
+}
+
+
+```
