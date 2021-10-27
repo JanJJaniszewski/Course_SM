@@ -41,5 +41,8 @@ while (error > e){
   iterations <- list.append(iterations, b)
 }
 
-
+# Compare it to the LM results:
+lm_compare <- lm(airq ~ ., data= as_tibble(Airq))
+lm_compare$coefficients %>% round(2)
+b %>% round(2)
 ```
