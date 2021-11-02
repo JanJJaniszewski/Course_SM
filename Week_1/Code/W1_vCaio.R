@@ -1,4 +1,4 @@
-setwd('../Week 1')
+  setwd('../Week 1')
 getwd()
 load('Airq_numeric.RData')
 set.seed(0)
