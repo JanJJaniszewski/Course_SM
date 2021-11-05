@@ -1,6 +1,5 @@
 setwd("~/AA BDS/1-2 Supervised Machine Learning/Week 2")
 getwd()
-load('supermarket1996.RData')
 #install.packages("tidyverse")
 library("tidyverse")
 set.seed(0)
