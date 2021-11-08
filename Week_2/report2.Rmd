@@ -17,14 +17,16 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 To predict where a new supermarket should be built is essential to supermarkt chains and the competitive edge gained from good predictions is integral to the success of a supermarket chain. However, there are many predictors of supermarket turnover as the shopping behavior of supermarket customers is an interaction of different factors which are not clearly found at first sight. 
 
 Therefore, this paper aims to analyze if supermarket turnover can be predicted using a subset of demographic data. Based on this goal, we have two research questions, which are:
-- Can supermarket turnover be predicted using demographic data?
-- Which subset of demographic variables minimizes our prediction error for predicting supermarket turnover?
+\begin{itemize}
+    \item Can supermarket turnover be predicted using demographic data?
+    \item Which subset of demographic variables minimizes our prediction error for predicting supermarket turnover?
+\end{itemize}
 
 ## 2. Data
 ### 2.1. Description
-Data used to answer our introduced questions originates from the U.S. government census (1990) and describes the demographic data for different supermarkets in the Chicago metropolitan area. It is part of a bigger data collection of data on 77 supermarkets in the Chicago area, which has been used for research on shelf management and pricing (Kilts Center, 2004).
+Data used to answer our introduced questions originates from the U.S. government census (1990) and describes the demographic data for neighbourhoods surrouding different supermarkets in the Chicago metropolitan area. It is part of a bigger data collection of data on 77 supermarkets in the Chicago area, which has been used for research on shelf management and pricing (Kilts Center, 2004).
 
-The data can be grouped into three categories, namely variables describing the supermarket in a given area, demographic characteristics of population living in the surroundings of the supermarket, and their shopping behavior (most likely from questionnaire data). It consists of 77 rows representing the 77 supermarket that have been researched (with one row covering the area of one supermarket). Each row consists of 44 different float values representing different customer or store characteristics. Using those variables, we want to predict total turnover in one year of groceries in \$ for a given supermarket (grocery\_sum; $Min=1423582\$, Mean=7341015\$, Max=13165586\$$)
+The data can be grouped into three categories, namely variables describing the supermarket in a given area, demographic characteristics of the population living in the surroundings of the supermarket, and their shopping behavior (most likely from questionnaire data). It consists of 77 rows representing the 77 supermarket that have been researched (with one row covering the area of one supermarket). Each row consists of 44 different float values representing different customer or store characteristics. Using those variables, we want to predict total turnover in one year of groceries in \$ for a given supermarket (grocery\_sum; $Min=1423582\$, Mean=7341015\$, Max=13165586\$$)
 
 For further information on the variables and the descriptions, see Appendix 1.
 
