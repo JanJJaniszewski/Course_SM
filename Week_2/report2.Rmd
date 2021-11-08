@@ -116,6 +116,9 @@ GLMNET                  &3263000                   & 0.367               \\ \bot
 \end{table}
 
 ## 5. Conclusions and Discussion
+The aim of this research was to predict supermarket turnover using demographic data. The research adjusted the predictor matrix using the elastic net, which eliminated in a continuous way the weakest predictors and adjusted their coefficients. The adjusted set of demographic variables account for approximately 46% of the variance of supermarket turnover in our model. This is highly relevant for the supermarket industry, for it can significantly predict which supermarkets will have a higher turnover or create supermarkets in the most favourable demographic circumstances, thus improving the conducting of operations and the collection of cash from accounts receivable.
+
+The research did not focus on the nature of the correlation. To manipulate the increase in supermarket turnover, future research can investigate if there is a causal relation between these variables through different methods such as experiments.
 
 ## 6. Appendix
 ### 6.1. Variable Description
