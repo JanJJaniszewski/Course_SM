@@ -24,7 +24,6 @@ Therefore, this paper aims to analyze if supermarket turnover can be predicted u
 ### 2.1. Description
 Data used to answer our introduced questions originates from the U.S. government census (1990) and described the demographic data for different supermarkets in the Chicago metropolitan area. It is part of a bigger data collection, which has been used for research on shelf management and pricing \citep{dict}
 
-\bibliographystyle{amsplain}
 The data can be grouped into three categories, namely variables describing the supermarket in a given area, demographic characteristics of population living in the surroundings of the supermarket, and their shopping behavior (most likely from questionnaire data). It consists of 77 rows representing the 77 supermarket that have been researched (with one row covering the area of one supermarket). Each row consists of 44 different float values representing different customer or store characteristics. Using those variables, we want to predict total turnover in one year of groceries in \$ for a given supermarket (grocery\_sum; $Min=1423582\$, Mean=7341015\$, Max=13165586\$$)
 
 For further information on the variables and the descriptions, see \ref{variables_used}.
