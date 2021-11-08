@@ -415,5 +415,5 @@ elastic_net <-function(y, X, lambda, alpha, verbose = FALSE){
 
 ## References
 Hastie, T., Tibshirani, R. and J. Friedman. (2009). 'The elements of statistical learning (2nd edition).' Springer. Available at https://web.stanford.edu/~hastie/Papers/ESLII.pdf.
-J. M. Kilts Center. Dominick’sdataset. (2004). Available at https://www.chicagobooth.edu/research/kilts/datasets/dominicks.
+J. M. Kilts Center. Dominick’s dataset. (2004). Available at https://www.chicagobooth.edu/research/kilts/datasets/dominicks.
 ***
