@@ -14,7 +14,11 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ```
 
 ## 1. Introduction 
+To predict where a new supermarket should be built is essential to supermarkt chains and the competitive edge gained from good predictions is integral to the success of a supermarket chain. However, there are many predictors of supermarket turnover as the shopping behavior of supermarket customers is an interaction of different factors which are not clearly found at first sight. 
 
+Therefore, this paper aims to analyze if supermarket turnover can be predicted using a subset of demographic data. Based on this goal, we have two research questions, which are:
+- Can supermarket turnover be predicted using demographic data?
+- Which subset of demographic variables minimizes our prediction error for predicting supermarket turnover?
 
 ## 2. Data
  
@@ -99,7 +103,64 @@ GLMNET                  &3263000                   & 0.367               \\ \bot
 
 ## 5. Conclusions and Discussion
 
-## 6. Code
+## 6. Appendix
+### 6.1. Variable Description
+| Variable Name | Description                                     |
+|---------------|-------------------------------------------------|
+| store         | Store identification number                     |
+| city          | City of supermarket                             |
+| Zip           | Zip-code                                        |
+| grocery\_sum  | Total turnover in one year of groceries (in \$) |
+| groccoup\_sum | Total of redeemed grocery coupons (in \$)       |
+| age9          | \% Population under age 9                       |
+| agebo         | \% Population over age 60                       |
+| ethnic        | \% Blacks & Hispanics|
+| educ          | \% College Graduates                            |
+| nocar         | \% With No Vehicles                             |
+| income        | Log of Median Income                            |
+| incsigme      | Std dev of Income Distribution (Approximated)   |
+| hsizeavg      | Average Household Size                          |
+| hsize1        | \% of households with 1 person                  |
+| hsize2        | \% of households with 2 persons                 |
+| hsize34       | \% of households with 3 or 4 persons            |
+| hsize567      | \% of households with 5 or more persons         |
+| hh3plus       | \% of households with 3 or more persons         |
+| hh4plus       | \% of households with 4 or more persons         |
+| hhsingle      | \% Detached Houses                              |
+| hhlarge       | \% of households with 5 or more persons         |
+| workwom       | \% Working Women with full-time jobs            |
+| sinhouse      | \% of households with 1 person                  |
+| density       | Trading Area in Sq Miles per Capita             |
+| hval150       | \% of Households with Value over \$160,000      |
+| hval200       | \% of Households with Value over \$200,000      |
+| hvalmesn      | Mean Household Value (Approximated)             |
+| single        | \% of Singles                                   |
+| retired       | \% of Retired                                   |
+| unemp         | \% of Unemployed                                |
+| wrkch5        | \% of working women with children under 5       |
+| wrkch 17      | \% of working women with children 6-17          |
+| nwrkch5       | \% of non-working women with children under 5   |
+| nwrkch17      | \% of non-working women with children 6-17      |
+| wrkch         | \% of working women with children               |
+| nwrkch        | \% of non-working women with children           |
+| wrkwch        | \% of working women with children under 5       |
+| wrkwnch       | \% of working women with no children            |
+| telephn       | \% of households with telephones                |
+| mortgage      | \% of households with mortgages                 |
+| nwhite        | \% of population that is non-white              |
+| poverty       | \% of population with income under \$15,000     |
+| shopcons      | \% of Constrained Shoppers                      |
+| shophurr      | \% of Hurried Shoppers                          |
+| shopavid      | \% of Avid Shoppers                             |
+| shopstr       | \% of Shopping Stranges                         |
+| shopunft      | \% of Unfettered Shoppers                       |
+| shopbird      | \% of Shopper Birds                             |
+| shopindx      | Ability to Shop (Car and Single Family House)   |
+| shpindx       | Ability to Shop (Car and Single Family House)   |
+
+
+
+### 6. Code
 ```{r code, echo = TRUE, eval = FALSE, highlight = TRUE}
 # RSS: Calculates the residual sums of squares
 #
