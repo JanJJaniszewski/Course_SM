@@ -1,4 +1,12 @@
-# RSS function
+# RSS: Calculates the residual sums of squares
+#
+# Parameters:
+#     X: matrix, contains independent variables
+#     y: vector, contains the dependent variable
+#     B: vector, contains the coefficients
+# Returns:
+#     rss: a float representing the residual sum of squares
+
 RSS <- function(X,B,y) {
   y_hat <- X %*% B
   rss <- t(y - y_hat) %*% (y - y_hat)
@@ -6,17 +14,30 @@ RSS <- function(X,B,y) {
   return(rss)
 }
 
-MJF <- function(B, A, D, xtx = xtx, xty = xty, yty = yty, lambda = lambda, alpha = alpha,n=n){
-  c <- 1/(2*n)*yty + (1/2)*lambda*alpha*sum(abs(B))
-  B_u <- 1/2*t(B) %*% A %*% B - 1/n *t(B)%*%xty + c 
-  
-  return(B_u)
+# RMSE: Calculates the root mean squared error
+#
+# Parameters:
+#     X: matrix, contains independent variables
+#     y: vector, contains the dependent variable
+#     B: vector, contains the coefficients
+# Returns:
+#     rmse: a float representing the root mean squared error
+
+RMSE <- function(X, Bk, y){
+  rmse <- sqrt(RSS(X, Bk, y)/dim(X)[1])
+  return(rmse)
 }
 
-MSE <- function(X, Bk, y){
-  mse <- RSS(X, Bk, y)/dim(X)[1]
-  return(mse)
-}
+
+# rsquared: Calculates the coefficient of determination
+#
+# Parameters:
+#     X: matrix, contains independent variables
+#     y: vector, contains the dependent variable
+#     B: vector, contains the coefficients
+#     adjusted: boolean, whether to calculate the adjusted R2
+# Returns:
+#     R2: a float representing the coefficient of determination
 
 rsquared <- function(X, Bk, y, adjusted = FALSE){
   y_mean <- mean(y)
@@ -29,13 +50,22 @@ rsquared <- function(X, Bk, y, adjusted = FALSE){
   } else {
     R2 <- 1 - ((1 - R2)*(n-1))/(n - p -1)
   }
-  return(R2)
+  return(round(R2,4))
 }
 
-adj.designmatrix <- function(X, scale = TRUE, intercept = TRUE){
-  if(scale == TRUE) {X <- as.matrix(scale(X))}
-  if(intercept == TRUE) {X <- cbind(matrix(1, dim(X)[1], 1), X)}
-}
+# gridkcv: Generates the parameter grid to be used in a gridsearch
+#
+# Parameters:
+#     start_lambda: float, smallest lambda to be part of the grid
+#     end_lambda: float, biggest lambda to be part of the grid
+#     delta_lambda: float, increment from lambda to lambda
+#
+#     start_alpha: float, smallest alpha to be part of the grid
+#     end_alpha: float, biggest alpha to be part of the grid
+#     delta_alpha: float, increment from alpha to alpha
+#
+# Returns:
+#     grid: a matrix with all of the parameter combinations
 
 gridkcv <- function(start_lambda, end_lambda, delta_lambda, start_alpha, end_alpha, delta_alpha){
   grid <- expand.grid(lambda = seq(from = start_lambda, by = delta_lambda, to = end_lambda),
@@ -43,7 +73,22 @@ gridkcv <- function(start_lambda, end_lambda, delta_lambda, start_alpha, end_alp
   return(grid)
 }
 
-kfold <- function(k, y, X, lambdas, alpha){
+
+# kfold: Generates the k-fold estimates (MSE, and R-squared)
+#
+# Parameters:
+#     k: float, number of folds
+#     X: matrix, contains independent variables
+#     y: vector, contains the dependent variable
+#     param_grid: matrix, the hyperparameter grid with the values to the be evaluated
+#     verbose: boolean, wheter to return the loss function value at each iteration
+#
+# Returns:
+#     fit_stat: matrix, for each combination in the parameter grid, it returns the fit statistics
+#               mean-squared error and r-squared
+#
+
+kfold <- function(k, y, X, param_grid, verbose = TRUE){
   indices <- sample(dim(X)[1])
   folds <- split(indices, ceiling(seq_along(indices)/(length(indices)/k)))
   
@@ -62,23 +107,76 @@ kfold <- function(k, y, X, lambdas, alpha){
       y_test <- y[folds[[i]]]
       X_test <- X[folds[[i]],]
       
-      fit <- elastic_net(y_train, X_train, param_grid[[1]][j], param_grid[[2]][i])
+      fit <- elastic_net(y_train, X_train, param_grid[[1]][j], param_grid[[2]][j], verbose = verbose)
       
       coef <- fit[[1]]
       R2 <- rsquared(adj.designmatrix(X_test, scale = TRUE, intercept = TRUE), fit[[1]], y_test, adjusted = FALSE)
-      mse <- MSE(adj.designmatrix(X_test, scale = TRUE, intercept = TRUE), coef, y_test)
+      rmse <- RMSE(adj.designmatrix(X_test, scale = TRUE, intercept = TRUE), coef, y_test)
       #print(param_grid[[2]][i]) 
-      temp[[i]] <- mse
+      temp[[i]] <- rmse
       temp2[[i]] <- R2
     }
     
-    fit_stat[j,'MSE'] <- mean(temp)
+    fit_stat[j,'RMSE'] <- mean(temp)
     fit_stat[j,'R2'] <- mean(temp2)
   }
   return(fit_stat)
 }
 
-elastic_net <-function(y, X, lambda, alpha){
+# adj.designmatrix : Adjusts the design matrix to accommodate an intercept if required
+#
+# Parameters:
+#     X: matrix, contains independent variables
+#     scale: Boolean, whether to scale the data
+#     intercept: Boolean, whether to add a vector of ones (to support the intercept)
+#
+# Returns:
+#     X: matrix, the adjusted design matrix
+#
+
+adj.designmatrix <- function(X, scale = TRUE, intercept = TRUE){
+  if(scale == TRUE) {X <- as.matrix(scale(X))}
+  if(intercept == TRUE) {X <- cbind(matrix(1, dim(X)[1], 1), X)}
+}
+
+
+# MJF : loss function to be used in each iteration of the MM algorithm
+#
+# Parameters:
+#     B: vector, candidate coefficients
+#     A: matrix, intermediate calculation used to update the coefficients
+#     D: matrix, intermediate calculation used to update the A matrix
+#
+# Returns:
+#     Bu: float, the loss function for that particular set of regressors
+#
+
+MJF <- function(B, A, D, xtx = xtx, xty = xty, yty = yty, lambda = lambda, alpha = alpha,n=n){
+  c <- 1/(2*n)*yty + (1/2)*lambda*alpha*sum(abs(B))
+  B_u <- 1/2*t(B) %*% A %*% B - 1/n *t(B)%*%xty + c 
+  
+  return(B_u)
+}
+
+# elastic_net : generates the elastic net estimates for the regression, through the MM
+#               algorithm
+#
+# Parameters:
+#     X: matrix, contains independent variables
+#     y: vector, contains the dependent variable
+#     lambda: float, lambda
+#     alpha: float, lambda
+#
+# Returns:
+#     Bk: vector, the loss function for that particular set of regressors
+#     R2:
+#     RMSE:
+#     X:
+#     iterations:
+#     loss:
+#
+
+elastic_net <-function(y, X, lambda, alpha, verbose = FALSE){
   
   X <- adj.designmatrix(X, scale = TRUE, intercept = TRUE)
   
@@ -112,14 +210,17 @@ elastic_net <-function(y, X, lambda, alpha){
     
     L_bk = MJF(Bk, A, D, xtx = xtx, xty = xty, yty = yty, lambda = lambda, alpha = alpha, n=n)
     
-    #print(L_bk)
-    #print(L_b0)
+    if(verbose == TRUE){
+    print(L_bk)
+    print(L_b0)
+    }
     
   }
   R2 <- rsquared(X, Bk, y, adjusted = FALSE)
+  rmse <- RMSE(X, Bk, y)
   res_list <- list('coefficients'=Bk,
                    'R2'=R2,
-                   'X'=X, 
+                   'RMSE'=rmse,
                    'iterations'= k,
                    'loss' = L_bk)
   return(res_list)
