@@ -21,7 +21,20 @@ Therefore, this paper aims to analyze if supermarket turnover can be predicted u
 - Which subset of demographic variables minimizes our prediction error for predicting supermarket turnover?
 
 ## 2. Data
- 
+### 2.1. Description
+Data used to answer our introduced questions originates from the U.S. government census (1990) and described the demographic data for different supermarkets in the Chicago metropolitan area. It is part of a bigger data collection, which has been used for research on shelf management and pricing \citep{dict}
+
+\bibliographystyle{amsplain}
+The data can be grouped into three categories, namely variables describing the supermarket in a given area, demographic characteristics of population living in the surroundings of the supermarket, and their shopping behavior (most likely from questionnaire data). It consists of 77 rows representing the 77 supermarket that have been researched (with one row covering the area of one supermarket). Each row consists of 44 different float values representing different customer or store characteristics. Using those variables, we want to predict total turnover in one year of groceries in \$ for a given supermarket (grocery\_sum; $Min=1423582\$, Mean=7341015\$, Max=13165586\$$)
+
+For further information on the variables and the descriptions, see \ref{variables_used}.
+
+### 2.2. Preparation
+As our research question is not related to location itself but rather to demographics accompanying the location and shopping behavior, we are not using variables related to the store, city, and zip code. Also, as grocery coupon turnover is only indirectly related to our question of the total turnover of a supermarket (it affects it negatively), we are also not using this variable in our data.
+
+Due to the high quality of the dataset we received (no bogus answers, no incorrectly values, no extreme or outlier values), no further preparation steps to the data were necessary.
+
+For in-depth descriptions of the data (e.g. mean), please see \citep{dict}
 
 ## 3. Methods
 A multiple regression model is used to predict the total supermarket turnover given the set of demographic data, which assumes that the regression function $E(Y |X)$ is linear in the inputs $X_1,...,X_p$. First, to reduce variance at the cost of bias, a shrinkage method is applied to the set of predictors. Specifically, the elastic net is chosen for its ability to select variables by soft thresholding like the Lasso and to apply proportional shrinkage to such variables like the Ridge regression. Second, the adjusted set of predictors is analyzed using the linear regression model that includes the penalty for large predictor set. Third, the expected prediction error is estimated using K-fold cross validation.
@@ -105,62 +118,67 @@ GLMNET                  &3263000                   & 0.367               \\ \bot
 
 ## 6. Appendix
 ### 6.1. Variable Description
-| Variable Name | Description                                     |
-|---------------|-------------------------------------------------|
-| store         | Store identification number                     |
-| city          | City of supermarket                             |
-| Zip           | Zip-code                                        |
-| grocery\_sum  | Total turnover in one year of groceries (in \$) |
-| groccoup\_sum | Total of redeemed grocery coupons (in \$)       |
-| age9          | \% Population under age 9                       |
-| agebo         | \% Population over age 60                       |
-| ethnic        | \% Blacks & Hispanics|
-| educ          | \% College Graduates                            |
-| nocar         | \% With No Vehicles                             |
-| income        | Log of Median Income                            |
-| incsigme      | Std dev of Income Distribution (Approximated)   |
-| hsizeavg      | Average Household Size                          |
-| hsize1        | \% of households with 1 person                  |
-| hsize2        | \% of households with 2 persons                 |
-| hsize34       | \% of households with 3 or 4 persons            |
-| hsize567      | \% of households with 5 or more persons         |
-| hh3plus       | \% of households with 3 or more persons         |
-| hh4plus       | \% of households with 4 or more persons         |
-| hhsingle      | \% Detached Houses                              |
-| hhlarge       | \% of households with 5 or more persons         |
-| workwom       | \% Working Women with full-time jobs            |
-| sinhouse      | \% of households with 1 person                  |
-| density       | Trading Area in Sq Miles per Capita             |
-| hval150       | \% of Households with Value over \$160,000      |
-| hval200       | \% of Households with Value over \$200,000      |
-| hvalmesn      | Mean Household Value (Approximated)             |
-| single        | \% of Singles                                   |
-| retired       | \% of Retired                                   |
-| unemp         | \% of Unemployed                                |
-| wrkch5        | \% of working women with children under 5       |
-| wrkch 17      | \% of working women with children 6-17          |
-| nwrkch5       | \% of non-working women with children under 5   |
-| nwrkch17      | \% of non-working women with children 6-17      |
-| wrkch         | \% of working women with children               |
-| nwrkch        | \% of non-working women with children           |
-| wrkwch        | \% of working women with children under 5       |
-| wrkwnch       | \% of working women with no children            |
-| telephn       | \% of households with telephones                |
-| mortgage      | \% of households with mortgages                 |
-| nwhite        | \% of population that is non-white              |
-| poverty       | \% of population with income under \$15,000     |
-| shopcons      | \% of Constrained Shoppers                      |
-| shophurr      | \% of Hurried Shoppers                          |
-| shopavid      | \% of Avid Shoppers                             |
-| shopstr       | \% of Shopping Stranges                         |
-| shopunft      | \% of Unfettered Shoppers                       |
-| shopbird      | \% of Shopper Birds                             |
-| shopindx      | Ability to Shop (Car and Single Family House)   |
-| shpindx       | Ability to Shop (Car and Single Family House)   |
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{|l|l|}
+    
+        Variable Name & Description \\  \hline
+        store & Store identification number \\ 
+        city & City of supermarket \\ 
+        Zip & Zip-code \\ 
+        grocery\_sum & Total turnover in one year of groceries (in \$) \\ 
+        groccoup\_sum & Total of redeemed grocery coupons (in \$) \\ 
+        age9 & \% Population under age 9 \\ 
+        agebo & \% Population over age 60 \\
+        ethnic & \% Blacks \&. Hispanics \\ 
+        educ & \% College Graduates \\ 
+        nocar & \% With No Vehicles \\ 
+        income & Log of Median Income \\ 
+        incsigme & Std dev of Income Distribution (Approximated) \\ 
+        hsizeavg & Average Household Size \\ 
+        hsize1 & \% of households with 1 person \\ 
+        hsize2 & \% of households with 2 persons \\ 
+        hsize34 & \% of households with 3 or 4 persons \\ 
+        hsize567 & \% of households with 5 or more persons \\ 
+        hh3plus & \% of households with 3 or more persons \\ 
+        hh4plus & \% of households with 4 or more persons \\ 
+        hhsingle & \% Detached Houses \\ 
+        hhlarge & \% of households with 5 or more persons \\ 
+        workwom & \% Working Women with full-time jobs \\ 
+        sinhouse & \% of households with 1 person \\ 
+        density & Trading Area in Sq Miles per Capita \\ 
+        hval150 & \% of Households with Value over \$160,000 \\ 
+        hval200 & \% of Households with Value over \$200,000 \\ 
+        hvalmesn & Mean Household Value (Approximated) \\ 
+        single & \% of Singles \\ 
+        retired & \% of Retired \\ 
+        unemp & \% of Unemployed \\ 
+        wrkch5 & \% of working women with children under 5 \\ 
+        wrkch 17 & \% of working women with children 6-17 \\ 
+        nwrkch5 & \% of non-working women with children under 5 \\ 
+        nwrkch17 & \% of non-working women with children 6-17 \\ 
+        wrkch & \% of working women with children \\ 
+        nwrkch & \% of non-working women with children \\ 
+        wrkwch & \% of working women with children under 5 \\ 
+        wrkwnch & \% of working women with no children \\ 
+        telephn & \% of households with telephones \\ 
+        mortgage & \% of households with mortgages \\ 
+        nwhite & \% of population that is non-white \\ 
+        poverty & \% of population with income under \$15,000 \\ 
+        shopcons & \% of Constrained Shoppers \\ 
+        shophurr & \% of Hurried Shoppers \\ 
+        shopavid & \% of Avid Shoppers \\ 
+        shopstr & \% of Shopping Stranges \\ 
+        shopunft & \% of Unfettered Shoppers \\ 
+        shopbird & \% of Shopper Birds \\ 
+        shopindx & Ability to Shop (Car and Single Family House) \\ 
+        shpindx & Ability to Shop (Car and Single Family House) \\ 
+    \end{tabular}
+    \caption{Variable description of variable used in the dataset}
+    \label{variables_used}
+\end{table}
 
-
-
-### 6. Code
+### 6.2. Code
 ```{r code, echo = TRUE, eval = FALSE, highlight = TRUE}
 # RSS: Calculates the residual sums of squares
 #
