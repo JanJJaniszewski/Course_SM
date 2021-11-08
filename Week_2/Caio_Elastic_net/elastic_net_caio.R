@@ -1,4 +1,5 @@
-load("../supermarket1996.RData")
+setwd("~/AA BDS/1-2 Supervised Machine Learning/Week 2")
+load("supermarket1996.RData")
 set.seed(0)
 library("tidyverse")
 

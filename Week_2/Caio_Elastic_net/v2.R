@@ -1,6 +1,7 @@
+setwd("~/AA BDS/1-2 Supervised Machine Learning/Week 2")
 source("functions.R")
 addTaskCallback(function(...) {set.seed(123);TRUE})
-load("../supermarket1996.RData")
+load("supermarket1996.RData")
 set.seed(10)
 library("tidyverse")
 library(ggplot2)
@@ -24,7 +25,7 @@ delta_alpha = 0.1
 param_grid <- gridkcv(start_lambda, end_lambda, delta_lambda, start_alpha, end_alpha, delta_alpha)
 
 
-a <- kfold(5, y, X, param_grid, verbose = FALSE)
+a <- kfold(10, y, X, param_grid, verbose = FALSE)
 a
 
 ggplot(a, aes(lambda, alpha, fill= RMSE)) + 

@@ -1,6 +1,6 @@
 ---
 title: "Prediction of Supermarket Turnover using Demographic Data"
-author: "" 
+author: "Group 3: Caio Rego, Irene Vega Ramón, Jan Janiszewski, Sjoerd Stevens" 
 header-includes:
    - \usepackage{booktabs}
 date: "08/11/2021"
@@ -21,14 +21,13 @@ Therefore, this paper aims to analyze if supermarket turnover can be predicted u
 - Which subset of demographic variables minimizes our prediction error for predicting supermarket turnover?
 
 ## 2. Data
-### 2.1. Description
+
 Data used to answer our introduced questions originates from the U.S. government census (1990) and describes the demographic data for different supermarkets in the Chicago metropolitan area. It is part of a bigger data collection of data on 77 supermarkets in the Chicago area, which has been used for research on shelf management and pricing (Kilts Center, 2004).
 
 The data can be grouped into three categories, namely variables describing the supermarket in a given area, demographic characteristics of population living in the surroundings of the supermarket, and their shopping behavior (most likely from questionnaire data). It consists of 77 rows representing the 77 supermarket that have been researched (with one row covering the area of one supermarket). Each row consists of 44 different float values representing different customer or store characteristics. Using those variables, we want to predict total turnover in one year of groceries in \$ for a given supermarket (grocery\_sum; $Min=1423582\$, Mean=7341015\$, Max=13165586\$$)
 
 For further information on the variables and the descriptions, see Appendix 1.
 
-### 2.2. Preparation
 As our research question is not related to location itself but rather to demographics accompanying the location and shopping behavior, we are not using variables related to the store, city, and zip code. Also, as grocery coupon turnover is only indirectly related to our question of the total turnover of a supermarket (it affects it negatively), we are also not using this variable in our data.
 
 Due to the high quality of the dataset we received (no bogus answers, no incorrectly values, no extreme or outlier values), no further preparation steps to the data were necessary.
@@ -114,6 +113,10 @@ GLMNET                  &3263000                   & 0.367               \\ \bot
 \end{table}
 
 ## 5. Conclusions and Discussion
+
+The aim of this research was to predict supermarket turnover using demographic data. The research adjusted the predictor matrix using the elastic net, which eliminated in a continuous way the weakest predictors and adjusted their coefficients. The adjusted set of demographic variables account for approximately 46% of the variance of supermarket turnover in our model. This is highly relevant for the supermarket industry, for it can significantly predict which supermarkets will have a higher turnover or create supermarkets in the most favourable demographic circumstances, thus improving the conducting of operations and the collection of cash from accounts receivable.
+
+The research did not focus on the nature of the correlation. To manipulate the increase in supermarket turnover, future research can investigate if there is a causal relation between these variables through different methods such as experiments.
 
 ## 6. Appendix
 ### 6.1. Variable Description
