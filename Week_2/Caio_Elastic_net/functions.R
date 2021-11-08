@@ -2,9 +2,9 @@
 RSS <- function(X,B,y) {
   y_hat <- X %*% B
   rss <- t(y - y_hat) %*% (y - y_hat)
+  
   return(rss)
 }
-
 
 MJF <- function(B, A, D, xtx = xtx, xty = xty, yty = yty, lambda = lambda, alpha = alpha,n=n){
   c <- 1/(2*n)*yty + (1/2)*lambda*alpha*sum(abs(B))
@@ -35,6 +35,47 @@ rsquared <- function(X, Bk, y, adjusted = FALSE){
 adj.designmatrix <- function(X, scale = TRUE, intercept = TRUE){
   if(scale == TRUE) {X <- as.matrix(scale(X))}
   if(intercept == TRUE) {X <- cbind(matrix(1, dim(X)[1], 1), X)}
+}
+
+gridkcv <- function(start_lambda, end_lambda, delta_lambda, start_alpha, end_alpha, delta_alpha){
+  grid <- expand.grid(lambda = seq(from = start_lambda, by = delta_lambda, to = end_lambda),
+                      alpha = seq(from = start_alpha, by = delta_alpha, to = end_alpha))
+  return(grid)
+}
+
+kfold <- function(k, y, X, lambdas, alpha){
+  indices <- sample(dim(X)[1])
+  folds <- split(indices, ceiling(seq_along(indices)/(length(indices)/k)))
+  
+  grid_size <- seq(dim(param_grid)[1])
+  
+  fit_stat <- param_grid
+  
+  for(j in grid_size){
+    temp <- matrix(1, grid_size, 1)
+    temp2 <- matrix(1, grid_size, 1)
+    for(i in 1:k){
+      
+      y_train <- y[-folds[[i]]]
+      X_train <- X[-folds[[i]],]
+      
+      y_test <- y[folds[[i]]]
+      X_test <- X[folds[[i]],]
+      
+      fit <- elastic_net(y_train, X_train, param_grid[[1]][j], param_grid[[2]][i])
+      
+      coef <- fit[[1]]
+      R2 <- rsquared(adj.designmatrix(X_test, scale = TRUE, intercept = TRUE), fit[[1]], y_test, adjusted = FALSE)
+      mse <- MSE(adj.designmatrix(X_test, scale = TRUE, intercept = TRUE), coef, y_test)
+      #print(param_grid[[2]][i]) 
+      temp[[i]] <- mse
+      temp2[[i]] <- R2
+    }
+    
+    fit_stat[j,'MSE'] <- mean(temp)
+    fit_stat[j,'R2'] <- mean(temp2)
+  }
+  return(fit_stat)
 }
 
 elastic_net <-function(y, X, lambda, alpha){
@@ -83,3 +124,4 @@ elastic_net <-function(y, X, lambda, alpha){
                    'loss' = L_bk)
   return(res_list)
 }
+
