@@ -67,7 +67,6 @@ In this report, a choice of $k=10$ is made such that cross-validation has lower 
 The K-fold cross validation yields an $\alpha=0.5$ and $\lambda=0.1$ such that the minimum RSME is obtained, as illustrated in Figure 1. This indicates that the best results are achieved by constructing the penalty using equally the Lasso and the Ridge parameters, and by applying a relatively large penalty to the least square error estimate.
 
 ```{r pressure, echo = FALSE,results='hide',fig.keep='all',fig.dim = c(4, 2.5), fig.align='center'}
-setwd("~/AA BDS/1-2 Supervised Machine Learning/Week 2")
 source("functions.R")
 load("supermarket1996.RData")
 set.seed(10)
