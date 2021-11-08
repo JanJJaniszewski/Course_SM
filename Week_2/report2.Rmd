@@ -33,7 +33,7 @@ As our research question is not related to location itself but rather to demogra
 
 Due to the high quality of the dataset we received (no bogus answers, no incorrectly values, no extreme or outlier values), no further preparation steps to the data were necessary.
 
-For in-depth descriptions of the data (e.g. mean), please see \citep{dict}
+For in-depth descriptions of the data (e.g. mean), please see Kilts Center, 2004.
 
 ## 3. Methods
 A multiple regression model is used to predict the total supermarket turnover given the set of demographic data, which assumes that the regression function $E(Y |X)$ is linear in the inputs $X_1,...,X_p$. First, to reduce variance at the cost of bias, a shrinkage method is applied to the set of predictors. Specifically, the elastic net is chosen for its ability to select variables by soft thresholding like the Lasso and to apply proportional shrinkage to such variables like the Ridge regression. Second, the adjusted set of predictors is analyzed using the linear regression model that includes the penalty for large predictor set. Third, the expected prediction error is estimated using K-fold cross validation.
