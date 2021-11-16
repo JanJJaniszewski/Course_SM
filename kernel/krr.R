@@ -3,9 +3,10 @@ datapath <- "./Airline.RData"
 
 # Packages ---------------------------------------------------------------------
 #install.packages(c("SVMMaj", "ISLR", "plotrix"))
-library("MASS")
-library("dsmle")
-library("tidyverse")
+library(pacman)
+p_load("tidyverse")
+p_load("MASS")
+p_load("dsmle")
 
 # Functions --------------------------------------------------------------------
 ## Loss Function ---------------------------------------------------------------
