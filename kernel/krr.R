@@ -1,24 +1,22 @@
 # Configuration ----------------------------------------------------------------
 datapath <- "./Airline.RData"
+
+# Packages ---------------------------------------------------------------------
 #install.packages(c("SVMMaj", "ISLR", "plotrix"))
-
-
-
 library("MASS")
 library("dsmle")
 library("tidyverse")
-#-------------------------------------------------------------------------------
-#FUNCTIONS
-#-------------------------------------------------------------------------------
-#Loss Function
+
+# Functions --------------------------------------------------------------------
+## Loss Function ---------------------------------------------------------------
 L_ridge <- function(w_0, qtilde, y, lambda, q_tilde){
   y_w0 <- y-ones%*%w_0
   JI_qtilde <- J%*%y - q_tilde 
   xtx <- X%*%t(X)
   loss <- y_w0%*%t(y_w0) + JI_qtilde%*%t(JI_qtilde) + lambda*q_tilde%*%solve(xtx)%*%q_tilde
 }
-#Efficient Matrix Multiplication
 
+## Efficient Matrix Multiplication ---------------------------------------------
 matrix_power <- function(A, d){
   result <- diag(dim(A)[1])
   while(d > 0){
@@ -47,10 +45,7 @@ kernel_rbf <- function (XtX, gamma) {
   return(k)
 }
 
-#-------------------------------------------------------------------------------
-#script
-
-
+# Script -----------------------------------------------------------------------
 load(datapath)
 
 df <- Airline
