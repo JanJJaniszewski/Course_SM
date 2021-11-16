@@ -1,5 +1,8 @@
 # Configuration ----------------------------------------------------------------
 datapath <- "./Airline.RData"
+lambda <- 10
+d <- 1
+gamma <- 1/2
 
 # Packages ---------------------------------------------------------------------
 #install.packages(c("SVMMaj", "ISLR", "plotrix"))
@@ -30,28 +33,46 @@ matrix_power <- function(A, d){
   return(result)
 }
 
-# Kernels ----------------------------------------------------------------------
-## Inhomogeneous kernel --------------------------------------------------------
-inho_krnl <- function(X, d){
+## Kernels ---------------------------------------------------------------------
+kernel_inhomogeneous <- function(X, d){
   A <- 1 + X%*%t(X)
   return(A^d)
 }
-## linear kernel ---------------------------------------------------------------
-xxt <- X%*%t(X)
 
-## rbf kernel ------------------------------------------------------------------
-kernel_rbf <- function (XtX, gamma) {
-  XX <- matrix(1, n) %*% diag(XtX)
-  k <- exp(-(XX - 2 * XtX + t(XX)) / gamma)
+kernel_linear <- function(X){
+  xxt <- X%*%t(X)
+}
+
+kernel_rbf <- function (X, gamma) {
+  XXt <- tcrossprod(X)
+  n <- nrow(X)
+  XX <- matrix(1, n) %*% diag(XXt)
+  k <- exp(-(XX - 2 * XXt + t(XX)) * gamma)
   return(k)
+}
+
+## Ridge Regression -------------------------------------------------------------
+kkr <- function(y, X, lambda, kernel_function, ...){
+  n <- nrow(X)
+  ones <- matrix(1, n, 1)
+  I <- diag(n)
+  
+  J <- I - (1/n)*(ones%*%t(ones)) 
+  Xtilde <- J %*% X #centralized X
+  kkt <- kernel_function(X, ...)
+  
+  w_0 <-(1/n)*t(ones)%*%Y
+  q_tilde <- solve(I + lambda*ginv(kkt))%*%J%*%Y
+  w <- round(ginv(Xtilde)%*%q_tilde,2)
+  return(w)
 }
 
 # Script -----------------------------------------------------------------------
 load(datapath)
 
 df <- Airline
-#-------------------------------------------------------------------------------
-#Preprocessing
+
+# Preprocessing ----------------------------------------------------------------
 df[, paste0('airline', 1:6)] <- NA
 df[, (dim(df)[2]-6+1):dim(df)[2]] <- sapply(names(df)[(dim(df)[2]-6+1):dim(df)[2]], function(x) as.integer(substr(x,8,8) == df$airline))
 
@@ -59,40 +80,17 @@ df[, (dim(df)[2]-6+1):dim(df)[2]] <- sapply(names(df)[(dim(df)[2]-6+1):dim(df)[2
 # df[, (dim(df)[2]-15+1):dim(df)[2]] <- sapply(names(df)[(dim(df)[2]-15+1):dim(df)[2]], function(x) as.integer(substr(x,5,6) == df$year))
 # df <- subset(df, select = -c(airline1, year1))
 
-#Initialisation
+# Initialisation
 X <- df %>% select(-c("airline", "airline1", "output"))
 
 X[,1:4] <- scale(X[,1:4])
 X <- as.matrix(X)
+y <- df$output
 
-Y <- df$output
-#-------------------------------------------------------------------------------
+# Results ----------------------------------------------------------------------
+kkr(y, X, lambda, kernel_rbf, gamma=1/2)
+kkr(Y, X, lambda, kernel_inhomogeneous, d=1)
 
-lambda <- 10
-kkr <- function(Y, X, lambda, kernel, linear = TRUE){
-  n <- dim(X)[1]
-  ones <- matrix(1, n, 1)
-
-  I <- diag(n)
-  J <- I - (1/n)*(ones%*%t(ones)) 
-  Xtilde <- J%*%X #centralized X
-  if(linear == TRUE){
-   kkt <- Xtilde%*%t(Xtilde) 
-  } else {kkt <- kernel}
-
-  w_0 <-(1/n)*t(ones)%*%Y
-  q_tilde <- solve(I + lambda*ginv(kkt))%*%J%*%Y
-  w <- round(ginv(Xtilde)%*%q_tilde,2)
-return(w)
-}
-#-------------------------------------------------------------------------------
-#inhomogenous kernel
-
-K <- inho_krnl(X, 2)
-
-#Results
-kkr(Y, X, 10, K, linear = FALSE)
-
-
+f1 <- function()
 
 
