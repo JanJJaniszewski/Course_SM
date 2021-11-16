@@ -1,4 +1,9 @@
+# Configuration ----------------------------------------------------------------
+datapath <- "./Airline.RData"
 #install.packages(c("SVMMaj", "ISLR", "plotrix"))
+
+
+
 library("MASS")
 library("dsmle")
 library("tidyverse")
@@ -25,21 +30,28 @@ matrix_power <- function(A, d){
   }
   return(result)
 }
-#-------------------------------------------------------------------------------
-#inhomogeneous kernel
+
+# Kernels ----------------------------------------------------------------------
+## Inhomogeneous kernel --------------------------------------------------------
 inho_krnl <- function(X, d){
   A <- 1 + X%*%t(X)
   return(A^d)
 }
-#-------------------------------------------------------------------------------
-#linear kernel
+## linear kernel ---------------------------------------------------------------
 xxt <- X%*%t(X)
+
+## rbf kernel ------------------------------------------------------------------
+kernel_rbf <- function (XtX, gamma) {
+  XX <- matrix(1, n) %*% diag(XtX)
+  k <- exp(-(XX - 2 * XtX + t(XX)) / gamma)
+  return(k)
+}
 
 #-------------------------------------------------------------------------------
 #script
 
 
-load("~/Desktop/BDS/Supervised Machine learning/data/Airline.RData")
+load(datapath)
 
 df <- Airline
 #-------------------------------------------------------------------------------
