@@ -10,6 +10,7 @@ library(pacman)
 p_load("tidyverse")
 p_load("MASS")
 p_load("dsmle")
+p_load('rdetools')
 
 # Functions --------------------------------------------------------------------
 ## Loss Function ---------------------------------------------------------------
@@ -67,6 +68,12 @@ kkr <- function(y, X, lambda, kernel_function, ...){
   return(w)
 }
 
+## Prediction ------------------------------------------------------------------ 
+# TODO
+
+## Cross validation ------------------------------------------------------------
+# TODO
+
 # Script -----------------------------------------------------------------------
 load(datapath)
 
@@ -89,6 +96,7 @@ y <- df$output
 
 # Results ----------------------------------------------------------------------
 kkr(y, X, lambda, kernel_rbf, gamma=1/2)
+kkr(y, X, lambda, rbfkernel, sigma=1) # Comparison to standard kernel function
 kkr(Y, X, lambda, kernel_inhomogeneous, d=1)
 
 f1 <- function()

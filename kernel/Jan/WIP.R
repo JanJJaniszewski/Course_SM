@@ -9,7 +9,7 @@ library(rdetools)
 # Kernel function
 kernel_rbf <- function (XtX, gamma) {
   XX <- matrix(1, n) %*% diag(XtX)
-  k <- exp(-(XX - 2 * XtX + t(XX)) / gamma)
+  k <- exp(-(XX - 2 * XtX + t(XX)) * gamma)
   return(k)
 }
 
@@ -28,6 +28,12 @@ ones <- matrix(1,n,1)
 w0 <- mean(y)
 
 # Transformation
+XXt <- tcrossprod(X)
+t(X) %*% X
+X %*% t(X)
+
+all(XtX == X %*% t(X))
+
 X_rbf <- kernel_rbf(XtX, gamma)
 X_rbf_X_rbf_t <- X_rbf%*%t(X_rbf)
 q_tilde <- (I + lambda * (X_rbf_X_rbf_t)^(-1))^(-1) %*% J %*% y
