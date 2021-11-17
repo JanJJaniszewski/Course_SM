@@ -31,11 +31,22 @@ kernel_linear <- function(X){
   xxt <- X%*%t(X)
 }
 
-kernel_rbf <- function (X, gamma) {
-  XXt <- tcrossprod(X)
-  n <- nrow(X)
-  XX <- matrix(1, n) %*% diag(XXt)
-  k <- exp(-(XX - 2 * XXt + t(XX)) * gamma)
+kernel_rbf <- function (X1, gamma, X2=NULL) {
+  n <- nrow(X1)
+  if (is.null(X2)) {
+    XtX1 <- tcrossprod(X1)
+    XX1 <- matrix(1, n) %*% diag(XtX1)
+    D <- XX1 - 2 * XtX1 + t(XX1)
+  }
+  else {
+    m <- nrow(X2)
+    XX1 <- matrix(apply(X1^2, 1, sum), n, m)
+    XX2 <- matrix(apply(X2^2, 1, sum), n, m, byrow = TRUE)
+    X1X2 <- tcrossprod(X1, X2)
+    D <- XX1 - 2 * X1X2 + XX2
+  }
+  
+  k <- exp(-D * gamma)
   return(k)
 }
 
@@ -46,11 +57,11 @@ krr <- function(y, X, lambda, kernel_function, ...){
   I <- diag(n)
   
   J <- I - (1/n)*(ones%*%t(ones)) 
-  Xtilde <- J %*% X #centralized X
+  # Xtilde <- J %*% X #centralized X
   kkt <- kernel_function(X, ...)
   
   w_0 <-(1/n)*t(ones)%*%y
-  q_tilde <- solve(I + lambda*ginv(kkt))%*%J%*%y
+  q_tilde <- solve(I + lambda*ginv(kkt),J%*%y)
   preds <- w_0[1] + q_tilde
   w <- round(ginv(X)%*%q_tilde,2)
   res_list = list('preds'= preds, 'q_tilde'=q_tilde, 'w_0'= w_0, 'w' = w)
@@ -66,8 +77,7 @@ predict_oos <- function(w_0, X_u, X_t, q_tilde, kernel.type, kernel_function, ..
   } else if(kernel.type == 'inhomogeneous'){
     ku <- (1 + X_u%*%t(X_t))^d 
   } else if(kernel.type == 'rbf'){
-    ku <- exp(-1*(outer(rowSums(X_u^2), rep(1, n)) 
-         + outer(rep(1, nrow(X_u)), rowSums(X^2)) - 2*X_u %*% t(X))*gamma)
+    ku <- kernel_function(X_u, gamma, X_t) 
   }
   
   preds <- w_0[1] + ku %*% ginv(K_t) %*% q_tilde
@@ -85,22 +95,12 @@ df <- Airline
 df[, paste0('airline', 1:6)] <- NA
 df[, (dim(df)[2]-6+1):dim(df)[2]] <- sapply(names(df)[(dim(df)[2]-6+1):dim(df)[2]], function(x) as.integer(substr(x,8,8) == df$airline))
 
-# df[, paste0('year', 1:15)] <- NA
-# df[, (dim(df)[2]-15+1):dim(df)[2]] <- sapply(names(df)[(dim(df)[2]-15+1):dim(df)[2]], function(x) as.integer(substr(x,5,6) == df$year))
-# df <- subset(df, select = -c(airline1, year1))
-
 # Initialisation
 X <- df %>% dplyr::select(-c("airline", "airline1", "output"))
 
 X[,1:4] <- scale(X[,1:4])
 X <- as.matrix(X)
 y <- df$output
-# Results ----------------------------------------------------------------------
-a <- krr(y, X, lambda, kernel_rbf, gamma=1/2)
-b <- krr(y, X, lambda, rbfkernel, sigma=1) # Comparison to standard kernel function
-
-res <-  krr(y_t, X_t, lambda, kernel_inhomogeneous, d=2)
-# Out of Sample Predictions ------------------------------------------------------------------
 
 #Test Data
 X_u <- X[(dim(X)[1]*0.7):dim(X)[1],]
@@ -110,12 +110,23 @@ y_u <- y[(dim(X)[1]*0.7):dim(X)[1]]
 X_t <- X[1:(dim(X)[1]*0.7),] 
 y_t <- y[1:(dim(X)[1]*0.7)]
 
+# Results ----------------------------------------------------------------------
+z <- krr(y, X, lambda, kernel_linear) 
+a <- krr(y, X, lambda, kernel_rbf, gamma=1/2) 
+b <- krr(y, X, lambda, rbfkernel, sigma=1) # Comparison to standard kernel function
+
+res <-  krr(y, X, lambda, kernel_inhomogeneous, d=2)
+# Out of Sample Predictions ------------------------------------------------------------------
+
+
 #Out of sample predictions
 w_0 <- res$w_0
 q_tilde <- res$q_tilde
 
-preds <- predict_oos(w_0[1], X_u, X_t, q_tilde, "inhomogeneous", kernel_inhomogeneous, d=2)
-preds
+predsINH <- predict_oos(w_0[1], X_u, X_t, q_tilde, "inhomogeneous", kernel_inhomogeneous, d=2)
+predsINH <- predict_oos(w_0[1], X_u, X_t, q_tilde, "inhomogeneous", kernel_inhomogeneous, d=2)
+predsRBF <- predict_oos(w_0[1], X_u, X_t, q_tilde, "rbf", kernel_rbf, gamma=0.5)
+
 dsmle::krr
 
 
@@ -124,24 +135,13 @@ dsmle::krr
 #In sample comparison with rdtools and dsmle
 #-------------------------------------------------------------------------------
 #dsmle
-res_pkg <- dsmle::krr(y, X, 10, kernel.type = "nonhompolynom", kernel.degree = 2)
+res_pkg <- dsmle::krr(y, X, 10, kernel.type = "inhomopolynom", kernel.degree = 2)
 y_hat_dsmle <- res_pkg$yhat
 
 #-------------------------------------------------------------------------------
 #rdetools
 k <- polykernel(X, 2, Y = NULL)
-r <- rde(k, y, est_y = TRUE)
+k <- rbfkernel(X)
+r <- rde(k, y, est_y = TRUE, dim_rest = 1, regression=TRUE)
 y_hat_rdtools <- r$yh
 
-rde
-
-
-
-ku <- exp(-1*(outer(rowSums(X_u^2), rep(1, n)) + outer(rep(1, nrow(X_u)), rowSums(X^2)) - 2*X_u %*% t(X))*gamma)
-
-a <- matrix(1,3)
-b <- matrix(1,3)
-
-outer(rep(1, nrow(X_u)), rowSums(X^2))
-rowSums(X^2)
-dim(X_u)
