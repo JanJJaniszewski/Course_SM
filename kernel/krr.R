@@ -53,7 +53,7 @@ kernel_rbf <- function (X, gamma) {
 }
 
 ## Ridge Regression -------------------------------------------------------------
-kkr <- function(y, X, lambda, kernel_function, ...){
+krr <- function(y, X, lambda, kernel_function, ...){
   n <- nrow(X)
   ones <- matrix(1, n, 1)
   I <- diag(n)
@@ -95,9 +95,9 @@ X <- as.matrix(X)
 y <- df$output
 
 # Results ----------------------------------------------------------------------
-kkr(y, X, lambda, kernel_rbf, gamma=1/2)
-kkr(y, X, lambda, rbfkernel, sigma=1) # Comparison to standard kernel function
-kkr(Y, X, lambda, kernel_inhomogeneous, d=1)
+krr(y, X, lambda, kernel_rbf, gamma=1/2)
+krr(y, X, lambda, rbfkernel, sigma=1) # Comparison to standard kernel function
+krr(Y, X, lambda, kernel_inhomogeneous, d=1)
 
 f1 <- function()
 
