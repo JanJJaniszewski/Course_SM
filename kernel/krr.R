@@ -11,33 +11,20 @@ p_load("MASS")
 p_load("dsmle")
 p_load('rdetools')
 p_load("tidyverse")
+p_load("ggpubr")
 
 # Functions --------------------------------------------------------------------
 ## Loss Function ---------------------------------------------------------------
-L_ridge <- function(w_0, qtilde, y, lambda, q_tilde){
-  y_w0 <- y-ones%*%w_0
-  JI_qtilde <- J%*%y - q_tilde 
-  xtx <- X%*%t(X)
-  loss <- y_w0%*%t(y_w0) + JI_qtilde%*%t(JI_qtilde) + lambda*q_tilde%*%solve(xtx)%*%q_tilde
-}
-
-## Efficient Matrix Multiplication ---------------------------------------------
-matrix_power <- function(A, d){
-  result <- diag(dim(A)[1])
-  while(d > 0){
-    if(d %% 2 == 1){
-      result <- result %*% A
-    }
-    A = A * A
-    d = d / 2
-  }
-  return(result)
-}
-
+# L_ridge <- function(w_0, qtilde, y, lambda, q_tilde){
+#   y_w0 <- y-ones%*%w_0
+#   JI_qtilde <- J%*%y - q_tilde 
+#   xtx <- X%*%t(X)
+#   loss <- y_w0%*%t(y_w0) + JI_qtilde%*%t(JI_qtilde) + lambda*q_tilde%*%solve(xtx)%*%q_tilde
+# }
 ## Kernels ---------------------------------------------------------------------
 kernel_inhomogeneous <- function(X, d){
-  A <- 1 + X%*%t(X)
-  return(A^d)
+  A <- (1 + X%*%t(X))^d
+  return(A)
 }
 
 kernel_linear <- function(X){
@@ -64,12 +51,24 @@ krr <- function(y, X, lambda, kernel_function, ...){
   
   w_0 <-(1/n)*t(ones)%*%y
   q_tilde <- solve(I + lambda*ginv(kkt))%*%J%*%y
-  w <- round(ginv(Xtilde)%*%q_tilde,2)
-  return(w)
+  preds <- w_0[1] + q_tilde
+  w <- round(ginv(X)%*%q_tilde,2)
+  res_list = list('preds'= preds, 'q_tilde'=q_tilde, 'w_0'= w_0, 'w' = w)
+  return(res_list)
 }
 
 ## Prediction ------------------------------------------------------------------ 
-# TODO
+predict_oos <- function(w_0, X_u, X_t, q_tilde, kernel.type, kernel_function, ...){
+  K_t <- kernel_function(X_t, ...)
+  #-------------------------------------------------------------------------------
+  if(kernel.type == 'linear'){
+    ku <- X_u%*%t(X_t)
+  } else if(kernel.type == 'inhomogeneous'){
+    ku <- (1 + X_u%*%t(X_t))^d 
+  } 
+  
+  preds <- w_0[1] + ku %*% ginv(K_t) %*% q_tilde
+}
 
 ## Cross validation ------------------------------------------------------------
 # TODO
@@ -93,12 +92,42 @@ X <- df %>% dplyr::select(-c("airline", "airline1", "output"))
 X[,1:4] <- scale(X[,1:4])
 X <- as.matrix(X)
 y <- df$output
-
 # Results ----------------------------------------------------------------------
-krr(y, X, lambda, kernel_rbf, gamma=1/2)
-krr(y, X, lambda, rbfkernel, sigma=1) # Comparison to standard kernel function
-krr(y, X, lambda, kernel_inhomogeneous, d=1)
+a <- krr(y, X, lambda, kernel_rbf, gamma=1/2)
+b <- krr(y, X, lambda, rbfkernel, sigma=1) # Comparison to standard kernel function
 
-f1 <- function()
+res <-  krr(y_t, X_t, lambda, kernel_inhomogeneous, d=2)
+# Out of Sample Predictions ------------------------------------------------------------------
+
+#Test Data
+X_u <- X[(dim(X)[1]*0.7):dim(X)[1],]
+y_u <- y[(dim(X)[1]*0.7):dim(X)[1]]
+
+#Train Data
+X_t <- X[1:(dim(X)[1]*0.7),] 
+y_t <- y[1:(dim(X)[1]*0.7)]
+
+#Out of sample predictions
+w_0 <- res$w_0
+q_tilde <- res$q_tilde
+
+preds <- predict_oos(w_0[1], X_u, X_t, q_tilde, "inhomogeneous", kernel_inhomogeneous, d=2)
+preds
+dsmle::krr
 
 
+################################################################################
+#-------------------------------------------------------------------------------
+#In sample comparison with rdtools and dsmle
+#-------------------------------------------------------------------------------
+#dsmle
+res_pkg <- dsmle::krr(y, X, 10, kernel.type = "nonhompolynom", kernel.degree = 2)
+y_hat_dsmle <- res_pkg$yhat
+
+#-------------------------------------------------------------------------------
+#rdetools
+k <- polykernel(X, 2, Y = NULL)
+r <- rde(k, y, est_y = TRUE)
+y_hat_rdtools <- r$yh
+
+rde
