@@ -1,0 +1,16 @@
+---
+title: "krr"
+author: "Group3"
+date: "11/17/2021"
+output: pdf_document
+---
+
+\section{Introduction}
+
+\section{Data}
+
+\section{Method}
+
+\section{Results}
+
+\section{Discussion}
