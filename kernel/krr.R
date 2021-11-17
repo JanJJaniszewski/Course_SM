@@ -65,7 +65,10 @@ predict_oos <- function(w_0, X_u, X_t, q_tilde, kernel.type, kernel_function, ..
     ku <- X_u%*%t(X_t)
   } else if(kernel.type == 'inhomogeneous'){
     ku <- (1 + X_u%*%t(X_t))^d 
-  } 
+  } else if(kernel.type == 'rbf'){
+    ku <- exp(-1*(outer(rowSums(X_u^2), rep(1, n)) 
+         + outer(rep(1, nrow(X_u)), rowSums(X^2)) - 2*X_u %*% t(X))*gamma)
+  }
   
   preds <- w_0[1] + ku %*% ginv(K_t) %*% q_tilde
 }
@@ -131,3 +134,14 @@ r <- rde(k, y, est_y = TRUE)
 y_hat_rdtools <- r$yh
 
 rde
+
+
+
+ku <- exp(-1*(outer(rowSums(X_u^2), rep(1, n)) + outer(rep(1, nrow(X_u)), rowSums(X^2)) - 2*X_u %*% t(X))*gamma)
+
+a <- matrix(1,3)
+b <- matrix(1,3)
+
+outer(rep(1, nrow(X_u)), rowSums(X^2))
+rowSums(X^2)
+dim(X_u)
