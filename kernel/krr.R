@@ -7,10 +7,10 @@ gamma <- 1/2
 # Packages ---------------------------------------------------------------------
 #install.packages(c("SVMMaj", "ISLR", "plotrix"))
 library(pacman)
-p_load("tidyverse")
 p_load("MASS")
 p_load("dsmle")
 p_load('rdetools')
+p_load("tidyverse")
 
 # Functions --------------------------------------------------------------------
 ## Loss Function ---------------------------------------------------------------
@@ -62,8 +62,8 @@ krr <- function(y, X, lambda, kernel_function, ...){
   Xtilde <- J %*% X #centralized X
   kkt <- kernel_function(X, ...)
   
-  w_0 <-(1/n)*t(ones)%*%Y
-  q_tilde <- solve(I + lambda*ginv(kkt))%*%J%*%Y
+  w_0 <-(1/n)*t(ones)%*%y
+  q_tilde <- solve(I + lambda*ginv(kkt))%*%J%*%y
   w <- round(ginv(Xtilde)%*%q_tilde,2)
   return(w)
 }
@@ -88,7 +88,7 @@ df[, (dim(df)[2]-6+1):dim(df)[2]] <- sapply(names(df)[(dim(df)[2]-6+1):dim(df)[2
 # df <- subset(df, select = -c(airline1, year1))
 
 # Initialisation
-X <- df %>% select(-c("airline", "airline1", "output"))
+X <- df %>% dplyr::select(-c("airline", "airline1", "output"))
 
 X[,1:4] <- scale(X[,1:4])
 X <- as.matrix(X)
@@ -97,7 +97,7 @@ y <- df$output
 # Results ----------------------------------------------------------------------
 krr(y, X, lambda, kernel_rbf, gamma=1/2)
 krr(y, X, lambda, rbfkernel, sigma=1) # Comparison to standard kernel function
-krr(Y, X, lambda, kernel_inhomogeneous, d=1)
+krr(y, X, lambda, kernel_inhomogeneous, d=1)
 
 f1 <- function()
 
