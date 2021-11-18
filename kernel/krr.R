@@ -12,6 +12,7 @@ p_load("dsmle")
 p_load('rdetools')
 p_load("tidyverse")
 p_load("ggpubr")
+p_load("fastDummies")
 
 # Functions --------------------------------------------------------------------
 ## Loss Function ---------------------------------------------------------------
@@ -54,33 +55,45 @@ kernel_rbf <- function (X1, gamma, X2=NULL) {
 krr <- function(y, X, lambda, kernel_function, ...){
   n <- nrow(X)
   ones <- matrix(1, n, 1)
+  mean_DM <- colMeans(X)#Storages mean of the columns for the training set design matrix
+  std_DM <- apply(X, 2, sd)#Storages the std of the columns for the training set design matrix
   I <- diag(n)
   
   J <- I - (1/n)*(ones%*%t(ones)) 
-  # Xtilde <- J %*% X #centralized X
-  kkt <- kernel_function(X, ...)
+  Xtilde <- J %*% X #centralized X
+  k <- kernel_function(X, ...)
+  k <- J %*% k %*% J #centralized K
   
   w_0 <-(1/n)*t(ones)%*%y
-  q_tilde <- solve(I + lambda*ginv(kkt),J%*%y)
+  q_tilde <- solve(I + lambda*ginv(k),J%*%y)
   preds <- w_0[1] + q_tilde
-  w <- round(ginv(X)%*%q_tilde,2)
-  res_list = list('preds'= preds, 'q_tilde'=q_tilde, 'w_0'= w_0, 'w' = w)
+  w <- round(ginv(Xtilde)%*%q_tilde,2)
+  res_list = list('preds'= preds, 'q_tilde'=q_tilde, 'w_0'= w_0, 'w' = w, 
+                  'mean_DM' = mean_DM, 'std_DM' = std_DM)
   return(res_list)
 }
 
 ## Prediction ------------------------------------------------------------------ 
-predict_oos <- function(w_0, X_u, X_t, q_tilde, kernel.type, kernel_function, ...){
+predict_oos <- function(X_u, X_t, res, kernel.type, kernel_function, ...){
+  w_0 <- res$w_0
+  q_tilde <- res$q_tilde
+  mean_DM <- res$mean_DM
+  std_DM <- res$std_DM
+  
   K_t <- kernel_function(X_t, ...)
+  
+  X_u_tilde <- X_u -  outer(rep(1, dim(X_u)[1]), mean_DM)
+  X_u_tilde <- X_u_tilde / outer(rep(1, dim(X_u)[1]), std_DM)
   #-------------------------------------------------------------------------------
   if(kernel.type == 'linear'){
-    ku <- X_u%*%t(X_t)
+    ku <-  X_u_tilde%*%t(X_t)
   } else if(kernel.type == 'inhomogeneous'){
-    ku <- (1 + X_u%*%t(X_t))^d 
+    ku <- (1 + X_u_tilde%*%t(X_t))^d 
   } else if(kernel.type == 'rbf'){
-    ku <- kernel_function(X_u, gamma, X_t) 
+    ku <- kernel_function( X_u_tilde, gamma, X_t) 
   }
   
-  preds <- w_0[1] + ku %*% ginv(K_t) %*% q_tilde
+  preds <- w_0[1] + X_u_tilde %*% ginv(K_t) %*% q_tilde
 }
 
 ## Cross validation ------------------------------------------------------------
@@ -104,7 +117,12 @@ X <- df %>% dplyr::select(-c(output, airline, year, airline_1)) %>% as.matrix
 # Initialisation
 X[,1:4] <- scale(X[,1:4])
 X <- as.matrix(X)
+
 y <- df$output
+X_names <- fastDummies::dummy_cols(df, select_columns = c('airline')) %>% names
+df <- fastDummies::dummy_cols(df %>% scale, select_columns = c('airline'))
+names(df) <- X_names
+X <- df %>% select(-c(output, airline, airline_1)) %>% as.matrix
 
 #Test Data
 X_u <- X[(dim(X)[1]*0.7):dim(X)[1],]
@@ -128,10 +146,7 @@ w_0 <- res$w_0
 q_tilde <- res$q_tilde
 
 predsINH <- predict_oos(w_0[1], X_u, X_t, q_tilde, "inhomogeneous", kernel_inhomogeneous, d=2)
-predsINH <- predict_oos(w_0[1], X_u, X_t, q_tilde, "inhomogeneous", kernel_inhomogeneous, d=2)
 predsRBF <- predict_oos(w_0[1], X_u, X_t, q_tilde, "rbf", kernel_rbf, gamma=0.5)
-
-dsmle::krr
 
 
 ################################################################################
@@ -139,7 +154,7 @@ dsmle::krr
 #In sample comparison with rdtools and dsmle
 #-------------------------------------------------------------------------------
 #dsmle
-res_pkg <- dsmle::krr(y, X, 10, kernel.type = "inhomopolynom", kernel.degree = 2)
+res_pkg <- dsmle::krr(y, X, 10, kernel.type = "nonhompolynom", kernel.degree = 1)
 y_hat_dsmle <- res_pkg$yhat
 
 #-------------------------------------------------------------------------------
@@ -148,4 +163,9 @@ k <- polykernel(X, 2, Y = NULL)
 k <- rbfkernel(X)
 r <- rde(k, y, est_y = TRUE, dim_rest = 1, regression=TRUE)
 y_hat_rdtools <- r$yh
+?rde()
+
+
+
+
 
