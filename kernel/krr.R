@@ -92,12 +92,16 @@ load(datapath)
 df <- Airline
 
 # Preprocessing ----------------------------------------------------------------
-df[, paste0('airline', 1:6)] <- NA
-df[, (dim(df)[2]-6+1):dim(df)[2]] <- sapply(names(df)[(dim(df)[2]-6+1):dim(df)[2]], function(x) as.integer(substr(x,8,8) == df$airline))
+X_names <- fastDummies::dummy_cols(df, select_columns = c('airline')) %>% names
+df <- fastDummies::dummy_cols(df %>% scale, select_columns = c('airline'))
+names(df) <- X_names
+
+X <- df %>% dplyr::select(-c(output, airline, year, airline_1)) %>% as.matrix
+
+# df[, paste0('airline', 1:6)] <- NA
+# df[, (dim(df)[2]-6+1):dim(df)[2]] <- sapply(names(df)[(dim(df)[2]-6+1):dim(df)[2]], function(x) as.integer(substr(x,8,8) == df$airline))
 
 # Initialisation
-X <- df %>% dplyr::select(-c("airline", "airline1", "output"))
-
 X[,1:4] <- scale(X[,1:4])
 X <- as.matrix(X)
 y <- df$output
