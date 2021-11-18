@@ -57,13 +57,13 @@ krr <- function(y, X, lambda, kernel_function, ...){
   I <- diag(n)
   
   J <- I - (1/n)*(ones%*%t(ones)) 
-  # Xtilde <- J %*% X #centralized X
-  kkt <- kernel_function(X, ...)
+  Xtilde <- J %*% X #centralized X
+  k <- kernel_function(X, ...)
   
   w_0 <-(1/n)*t(ones)%*%y
-  q_tilde <- solve(I + lambda*ginv(kkt),J%*%y)
+  q_tilde <- solve(I + lambda*ginv(k),J%*%y)
   preds <- w_0[1] + q_tilde
-  w <- round(ginv(X)%*%q_tilde,2)
+  w <- round(ginv(Xtilde)%*%q_tilde,2)
   res_list = list('preds'= preds, 'q_tilde'=q_tilde, 'w_0'= w_0, 'w' = w)
   return(res_list)
 }
@@ -144,4 +144,5 @@ k <- polykernel(X, 2, Y = NULL)
 k <- rbfkernel(X)
 r <- rde(k, y, est_y = TRUE, dim_rest = 1, regression=TRUE)
 y_hat_rdtools <- r$yh
+?rde()
 
