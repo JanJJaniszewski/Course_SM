@@ -147,8 +147,8 @@ run_cv <- function(df_train, df_test){
   X_test <- dplyr::select(df_test, -output) %>% as.matrix()
   y_test <- df_test$output
   
-  res <- krr(y_train, X_train, lambda, kernel_linear)
-  predictions <- predict_oos(X_test, X_train, res, kernel_linear)
+  res <- krr(y_train, X_train, lambda, kernel_rbf, gamma=config_gamma)
+  predictions <- predict_oos(X_test, X_train, res, kernel_rbf, gamma=config_gamma)
   mse <- mean((predictions - y_test)^2)
   return(mse)
 }
@@ -175,9 +175,9 @@ y_train <- df_train$output
 X_test <- dplyr::select(df_test, -output) %>% as.matrix()
 y_test <- df_test$output
 
-res <- krr(y_train, X_train, best_lambda, kernel_linear)
-predictions <- predict_oos(X_test, X_train, res, kernel_linear)
-mse <- mean((predictions - y_test)^2)
+res <- krr(y_train, X_train, best_lambda, kernel_rbf, gamma = config_gamma)
+predictions <- predict_oos(X_test, X_train, res, kernel_rbf, gamma = config_gamma)
+mse <- mean((predictions - y_test))
 
 # Results ----------------------------------------------------------------------
 # z <- krr(y, X, lambda, kernel_linear)
