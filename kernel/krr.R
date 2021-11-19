@@ -5,6 +5,7 @@ config_lambdas <- c(0, 0.001, 0.01, 0.1, 1, 5, 10, 100)
 config_d <- 2
 config_gammas <- c(0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 10)
 config_k <- 20
+config_r <- c(2, 3, 4, 5, 6, 7, 8, 9, 10)
 
 # Packages ---------------------------------------------------------------------
 #install.packages(c("SVMMaj", "ISLR", "plotrix"))
@@ -58,7 +59,35 @@ kernel_rbf <- function (X1, gamma, X2 = NULL, d=NULL) {
   return(k)
 }
 
-config_kernel <- kernel_rbf
+kernel_polyspline <- function (X1, X2=NULL, r=2){
+  # 
+  
+  if (is.null(X2)) {
+    n <- nrow(X1)
+    XtX1 <- tcrossprod(X1)
+    XX1 <- matrix(1, n) %*% diag(XtX1)
+    D <- XX1 - 2 * XtX1 + t(XX1)
+  }  
+  else {
+    n <- nrow(X2)
+    m <- nrow(X1)
+    XX2 <- matrix(apply(X2 ^ 2, 1, sum), n, m)
+    XX1 <- matrix(apply(X1 ^ 2, 1, sum), n, m, byrow = TRUE)
+    X1X2 <- tcrossprod(X2, X1)
+    D <- XX2 - 2 * X1X2 + XX1
+  }
+  
+  if (r%%2==0){
+    k = D ^ r
+  }
+  else {
+    k = (D ^ (r-1)) * log(D ^ D)
+  }
+  
+  return(k)
+}
+
+config_kernel <- kernel_polyspline
 
 ## Ridge Regression ------------------------------------------------------------
 krr <- function(y, X, lambda, kernel_function, ...) {
@@ -123,12 +152,12 @@ df <- Airline
 
 df <- fastDummies::dummy_cols(df, select_columns = c('airline')) %>% dplyr::select(-airline)
 
+# don't we need more than 6 obs OOS?
 df_train <- df %>% filter(year < max(year))
-nrow(df_train)
 df_test <- df %>% filter(year == max(year))
-nrow(df_test)
 
 # Preprocessing ----------------------------------------------------------------
+# why is this scaling happening like this?
 df_test <- df_test %>% mutate(
   year = (year - mean(df_train$year)) / sd(df_train$year),
   cost = (cost - mean(df_train$cost)) / sd(df_train$cost),
@@ -145,12 +174,13 @@ plot(t1$year, t1$output_fn1)
 # Cross Validation -------------------------------------------------------------
 
 
-run_cv <- function(df_train, df_test, mygamma, mylambda){
+run_cv <- function(df_train, df_test, mygamma, mylambda, myr){
   X_train <- dplyr::select(df_train, -output) %>% as.matrix()
   y_train <- df_train$output
   X_test <- dplyr::select(df_test, -output) %>% as.matrix()
   y_test <- df_test$output
   
+  # why are there so many variables here that are not defined in the function?
   res <- krr(y_train, X_train, lambda=mylambda, config_kernel, gamma=mygamma, d=config_d)
   predictions <- predict_oos(X_test, X_train, res, config_kernel, gamma=mygamma, d=config_d)
   mse <- mean((predictions - y_test)^2)
@@ -173,7 +203,6 @@ for (config_lambda in config_lambdas){
     cv_lambda$mse <- map2_dbl(cv$train, cv$test, ~ run_cv(.x, .y, config_gamma, config_lambda))
     crossv_cv <- bind_rows(crossv_cv, cv_lambda)
   }
-
 }
 
 crossv_output <- crossv_cv %>% select(c(lambda, gamma, mse)) %>% group_by(lambda, gamma) %>% summarise_all(mean)
