@@ -123,9 +123,9 @@ df <- Airline
 
 df <- fastDummies::dummy_cols(df, select_columns = c('airline')) %>% dplyr::select(-airline)
 
-df_train <- df %>% filter(year < 12)
+df_train <- df %>% filter(year < max(year))
 nrow(df_train)
-df_test <- df %>% filter(year >= 12)
+df_test <- df %>% filter(year == max(year))
 nrow(df_test)
 
 # Preprocessing ----------------------------------------------------------------
@@ -161,10 +161,7 @@ cv <- df_train %>% split(.$year)
 cv <- tibble(year = c(1:length(names(cv))), test = cv)
 
 filter_by_year <- function(filteryear, df){df %>% filter(df$year != filteryear)}
-
-filter_by_year(cv$test$`0`$year %>% mean, df_train)
 cv$train <- map(cv$test, ~ filter_by_year(mean(.$year), df_train))
-# TODO: SPlit by year instead of random
 
 # Gridsearch -------------------------------------------------------------------
 crossv_cv <- tibble()
@@ -197,45 +194,17 @@ res <- krr(y_train, X_train, lambda = best_lambda, config_kernel, gamma = best_g
 predictions <- predict_oos(X_test, X_train, res, config_kernel, gamma = best_gamma, d=config_d)
 mse <- mean((predictions - y_test)^2)
 print(mse)
-# TODO: Introduce heatmap
 
-# Results ----------------------------------------------------------------------
-# z <- krr(y, X, lambda, kernel_linear)
-# a <- krr(y, X, lambda, kernel_rbf, gamma = 1 / 2)
-# b <-
-#   krr(y, X, lambda, rbfkernel, sigma = 1) # Comparison to standard kernel function
-# 
-# res <-  krr(y, X, lambda, kernel_inhomogeneous, d = 2)
+# Comparison -------------------------------------------------------------------
+## LM --------------------------------------------------------------------------
+lm_model <- lm(y_train ~ ., data=as.data.frame(cbind(X_train, y_train)))
+lm_preds <- predict(lm_model, data=as.data.frame(cbind(X_test, y_test)))
+mse <- mean((lm_preds - y_test)^2)
+print(mse) # Higher than our model
 
-
-# Comparison to DSMLE ----------------------------------------------------------
+## DSMLE -----------------------------------------------------------------------
 res_pkg <-
-  dsmle::krr(y, X, config_k, kernel.type = "nonhompolynom", kernel.degree = 1)
+  dsmle::krr(y_train, X_train, config_k, kernel.type = "nonhompolynom", kernel.degree = 1)
 y_hat_dsmle <- res_pkg$yhat
-
-# # Out of Sample Predictions ------------------------------------------------------------------
-w_0 <- res$w_0
-q_tilde <- res$q_tilde
-
-predsINH <-
-  predict_oos(w_0[1],
-              X_u,
-              X_t,
-              q_tilde,
-              kernel_inhomogeneous,
-              d = 2)
-predsRBF <-
-  predict_oos(w_0[1], X_u, X_t, q_tilde, "rbf", config_kernel, gamma = config_gamma)
-
-# 
-# 
-# #rdetools
-# k <- polykernel(X, 2, Y = NULL)
-# k <- rbfkernel(X)
-# r <- rde(k,
-#          y,
-#          est_y = TRUE,
-#          dim_rest = 1,
-#          regression = TRUE)
-# y_hat_rdtools <- r$yh
-# ? rde()
+mse <- mean((y_hat_dsmle - y_train)^2)
+print(mse) # Higher than our model
