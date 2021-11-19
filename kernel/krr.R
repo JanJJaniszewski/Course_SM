@@ -38,21 +38,23 @@ kernel_inhomogeneous <- function(X, d, X2 = NULL) {
 }
 
 kernel_rbf <- function (X1, gamma, X2 = NULL) {
-  n <- nrow(X1)
+ 
   if (is.null(X2)) {
+    n <- nrow(X1)
     XtX1 <- tcrossprod(X1)
     XX1 <- matrix(1, n) %*% diag(XtX1)
     D <- XX1 - 2 * XtX1 + t(XX1)
   }
   else {
-    m <- nrow(X2)
-    XX1 <- matrix(apply(X1 ^ 2, 1, sum), n, m)
-    XX2 <- matrix(apply(X2 ^ 2, 1, sum), n, m, byrow = TRUE)
-    X1X2 <- tcrossprod(X1, X2)
-    D <- XX1 - 2 * X1X2 + XX2
+    n <- nrow(X2)
+    m <- nrow(X1)
+    XX2 <- matrix(apply(X2 ^ 2, 1, sum), n, m)
+    XX1 <- matrix(apply(X1 ^ 2, 1, sum), n, m, byrow = TRUE)
+    X1X2 <- tcrossprod(X2, X1)
+    D <- XX2 - 2 * X1X2 + XX1
   }
   
-  k <- exp(-D * gamma)
+  k <- exp(-gamma * D)
   return(k)
 }
 
@@ -194,19 +196,19 @@ res_pkg <-
 y_hat_dsmle <- res_pkg$yhat
 
 # # Out of Sample Predictions ------------------------------------------------------------------
-# w_0 <- res$w_0
-# q_tilde <- res$q_tilde
-# 
-# predsINH <-
-#   predict_oos(w_0[1],
-#               X_u,
-#               X_t,
-#               q_tilde,
-#               kernel_inhomogeneous,
-#               d = 2)
-# predsRBF <-
-#   predict_oos(w_0[1], X_u, X_t, q_tilde, "rbf", kernel_rbf, gamma = config_gamma)
-# 
+w_0 <- res$w_0
+q_tilde <- res$q_tilde
+
+predsINH <-
+  predict_oos(w_0[1],
+              X_u,
+              X_t,
+              q_tilde,
+              kernel_inhomogeneous,
+              d = 2)
+predsRBF <-
+  predict_oos(w_0[1], X_u, X_t, q_tilde, "rbf", kernel_rbf, gamma = config_gamma)
+
 # 
 # 
 # #rdetools
