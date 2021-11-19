@@ -1,9 +1,9 @@
 # Configuration ----------------------------------------------------------------
 set.seet(1)
 datapath <- "./Airline.RData"
-config_lambdas <- c(0.001, 0.01, 0.1, 1, 5, 10, 100)
+config_lambdas <- c(0, 0.001, 0.01, 0.1, 1, 5, 10, 100)
 config_d <- 2
-config_gamma <- 1 / 2
+config_gammas <- c(0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 10)
 config_k <- 20
 
 # Packages ---------------------------------------------------------------------
@@ -58,7 +58,7 @@ kernel_rbf <- function (X1, gamma, X2 = NULL, d=NULL) {
   return(k)
 }
 
-config_kernel <- kernel_linear
+config_kernel <- kernel_rbf
 
 ## Ridge Regression ------------------------------------------------------------
 krr <- function(y, X, lambda, kernel_function, ...) {
@@ -143,39 +143,49 @@ t1 <- Airline %>% group_by(year) %>% summarise_all(c(mean, sd))
 plot(t1$year, t1$output_fn1)
 
 # Cross Validation -------------------------------------------------------------
-filter_by_idx <- function(idx){
-  df_train %>% filter(as.numeric(rownames(df_train)) %in% idx)
-}
 
-run_cv <- function(df_train, df_test){
+
+run_cv <- function(df_train, df_test, mygamma, mylambda){
   X_train <- dplyr::select(df_train, -output) %>% as.matrix()
   y_train <- df_train$output
   X_test <- dplyr::select(df_test, -output) %>% as.matrix()
   y_test <- df_test$output
   
-  res <- krr(y_train, X_train, lambda, config_kernel, gamma=config_gamma, d=config_d)
-  predictions <- predict_oos(X_test, X_train, res, config_kernel, gamma=config_gamma, d=config_d)
+  res <- krr(y_train, X_train, lambda=mylambda, config_kernel, gamma=mygamma, d=config_d)
+  predictions <- predict_oos(X_test, X_train, res, config_kernel, gamma=mygamma, d=config_d)
   mse <- mean((predictions - y_test)^2)
   return(mse)
 }
 
-cv  <- crossv_kfold(df_train, k = config_k)
-cv$train <- map(cv$train, ~ filter_by_idx(.$idx))
-cv$test <- map(cv$test, ~ filter_by_idx(.$idx))
+cv <- df_train %>% split(.$year)
+cv <- tibble(year = c(1:length(names(cv))), test = cv)
+
+filter_by_year <- function(filteryear, df){df %>% filter(df$year != filteryear)}
+
+filter_by_year(cv$test$`0`$year %>% mean, df_train)
+cv$train <- map(cv$test, ~ filter_by_year(mean(.$year), df_train))
 # TODO: SPlit by year instead of random
 
 # Gridsearch -------------------------------------------------------------------
 crossv_cv <- tibble()
-for (lambda in config_lambdas){
-  cv_lambda <- cv
-  cv_lambda$lambda <- lambda
-  cv_lambda$mse <- map2_dbl(cv$train, cv$test, ~ run_cv(.x, .y))
-  crossv_cv <- bind_rows(crossv_cv, cv_lambda)
+for (config_lambda in config_lambdas){
+  for (config_gamma in config_gammas){
+    cv_lambda <- cv
+    cv_lambda$lambda <- config_lambda
+    cv_lambda$gamma <- config_gamma
+    cv_lambda$mse <- map2_dbl(cv$train, cv$test, ~ run_cv(.x, .y, config_gamma, config_lambda))
+    crossv_cv <- bind_rows(crossv_cv, cv_lambda)
+  }
+
 }
 
-crossv_output <- crossv_cv %>% select(c(lambda, mse)) %>% group_by(lambda) %>% summarise_all(mean)
+crossv_output <- crossv_cv %>% select(c(lambda, gamma, mse)) %>% group_by(lambda, gamma) %>% summarise_all(mean)
 best_lambda <- crossv_output %>% filter(mse == min(crossv_output$mse)) %>% pull(lambda)
-# TODO: Why is the smallest lambda good?
+best_gamma <- crossv_output %>% filter(mse == min(crossv_output$mse)) %>% pull(gamma)
+
+print(best_lambda)
+print(best_gamma)
+print(min(crossv_output$mse))
 
 # Final Testset ----------------------------------------------------------------
 X_train <- dplyr::select(df_train, -output) %>% as.matrix()
@@ -183,9 +193,11 @@ y_train <- df_train$output
 X_test <- dplyr::select(df_test, -output) %>% as.matrix()
 y_test <- df_test$output
 
-res <- krr(y_train, X_train, best_lambda, config_kernel, gamma = config_gamma, d=config_d)
-predictions <- predict_oos(X_test, X_train, res, config_kernel, gamma = config_gamma, d=config_d)
+res <- krr(y_train, X_train, lambda = best_lambda, config_kernel, gamma = best_gamma, d=config_d)
+predictions <- predict_oos(X_test, X_train, res, config_kernel, gamma = best_gamma, d=config_d)
 mse <- mean((predictions - y_test)^2)
+print(mse)
+# TODO: Introduce heatmap
 
 # Results ----------------------------------------------------------------------
 # z <- krr(y, X, lambda, kernel_linear)
