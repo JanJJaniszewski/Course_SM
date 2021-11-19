@@ -1,10 +1,10 @@
 # Configuration ----------------------------------------------------------------
-set.
+set.seet(1)
 datapath <- "./Airline.RData"
-config_lambdas <- c(5, 10)
+config_lambdas <- c(0.001, 0.01, 0.1, 1, 5, 10, 100)
 config_d <- 2
 config_gamma <- 1 / 2
-config_k <- 10
+config_k <- 20
 
 # Packages ---------------------------------------------------------------------
 #install.packages(c("SVMMaj", "ISLR", "plotrix"))
@@ -25,19 +25,19 @@ p_load(MASS,mlbench,
 
 # Functions --------------------------------------------------------------------
 ## Kernels training ------------------------------------------------------------
-kernel_linear <- function(X, X2 = NULL) {
+kernel_linear <- function(X, X2 = NULL, gamma=NULL, d=NULL) {
   if (is.null(X2)){X2 <- X}
   out <- X2 %*% t(X)
   return(out)
 }
 
-kernel_inhomogeneous <- function(X, d, X2 = NULL) {
+kernel_inhomogeneous <- function(X, d, X2 = NULL, gamma=NULL) {
   if (is.null(X2)){ X2 <- X}
   out <- (1 + X2 %*% t(X)) ^ d
   return(out)
 }
 
-kernel_rbf <- function (X1, gamma, X2 = NULL) {
+kernel_rbf <- function (X1, gamma, X2 = NULL, d=NULL) {
  
   if (is.null(X2)) {
     n <- nrow(X1)
@@ -57,6 +57,8 @@ kernel_rbf <- function (X1, gamma, X2 = NULL) {
   k <- exp(-gamma * D)
   return(k)
 }
+
+config_kernel <- kernel_linear
 
 ## Ridge Regression ------------------------------------------------------------
 krr <- function(y, X, lambda, kernel_function, ...) {
@@ -98,13 +100,14 @@ predict_oos <-
            ...) {
     w_0 <- res$w_0
     q_tilde <- res$q_tilde
-    mean_DM <- res$mean_DM
-    std_DM <- res$std_DM
+    #mean_DM <- res$mean_DM
+    #std_DM <- res$std_DM
     
     K_t <- kernel_function(X_t, ...)
     
-    X_u_tilde <- X_u -  outer(rep(1, dim(X_u)[1]), mean_DM)
-    X_u_tilde <- X_u_tilde / outer(rep(1, dim(X_u)[1]), std_DM)
+    X_u_tilde <- X_u
+    #X_u_tilde <- X_u -  outer(rep(1, dim(X_u)[1]), mean_DM)
+    #X_u_tilde <- X_u_tilde / outer(rep(1, dim(X_u)[1]), std_DM)
 
     ku <- kernel_function(X_t, X2 = X_u_tilde, ...)
     
@@ -112,9 +115,6 @@ predict_oos <-
     
     return(predictions)
   }
-
-## Cross validation ------------------------------------------------------------
-# TODO
 
 # Script -----------------------------------------------------------------------
 load(datapath)
@@ -131,12 +131,16 @@ nrow(df_test)
 # Preprocessing ----------------------------------------------------------------
 df_test <- df_test %>% mutate(
   year = (year - mean(df_train$year)) / sd(df_train$year),
-  cost = (year - mean(df_train$cost)) / sd(df_train$cost),
-  pf = (year - mean(df_train$pf)) / sd(df_train$pf),
-  lf = (year - mean(df_train$lf)) / sd(df_train$lf)
+  cost = (cost - mean(df_train$cost)) / sd(df_train$cost),
+  pf = (pf - mean(df_train$pf)) / sd(df_train$pf),
+  lf = (lf - mean(df_train$lf)) / sd(df_train$lf)
 )
 
 df_train[,c('year', 'cost', 'pf', 'lf')] <- df_train[,c('year', 'cost', 'pf', 'lf')] %>% scale
+
+# Data analysis ----------------------------------------------------------------
+t1 <- Airline %>% group_by(year) %>% summarise_all(c(mean, sd))
+plot(t1$year, t1$output_fn1)
 
 # Cross Validation -------------------------------------------------------------
 filter_by_idx <- function(idx){
@@ -149,15 +153,16 @@ run_cv <- function(df_train, df_test){
   X_test <- dplyr::select(df_test, -output) %>% as.matrix()
   y_test <- df_test$output
   
-  res <- krr(y_train, X_train, lambda, kernel_rbf, gamma=config_gamma)
-  predictions <- predict_oos(X_test, X_train, res, kernel_rbf, gamma=config_gamma)
+  res <- krr(y_train, X_train, lambda, config_kernel, gamma=config_gamma, d=config_d)
+  predictions <- predict_oos(X_test, X_train, res, config_kernel, gamma=config_gamma, d=config_d)
   mse <- mean((predictions - y_test)^2)
   return(mse)
 }
 
-cv  <- crossv_kfold(df_train, k = 5)
+cv  <- crossv_kfold(df_train, k = config_k)
 cv$train <- map(cv$train, ~ filter_by_idx(.$idx))
 cv$test <- map(cv$test, ~ filter_by_idx(.$idx))
+# TODO: SPlit by year instead of random
 
 # Gridsearch -------------------------------------------------------------------
 crossv_cv <- tibble()
@@ -170,6 +175,7 @@ for (lambda in config_lambdas){
 
 crossv_output <- crossv_cv %>% select(c(lambda, mse)) %>% group_by(lambda) %>% summarise_all(mean)
 best_lambda <- crossv_output %>% filter(mse == min(crossv_output$mse)) %>% pull(lambda)
+# TODO: Why is the smallest lambda good?
 
 # Final Testset ----------------------------------------------------------------
 X_train <- dplyr::select(df_train, -output) %>% as.matrix()
@@ -177,9 +183,9 @@ y_train <- df_train$output
 X_test <- dplyr::select(df_test, -output) %>% as.matrix()
 y_test <- df_test$output
 
-res <- krr(y_train, X_train, best_lambda, kernel_rbf, gamma = config_gamma)
-predictions <- predict_oos(X_test, X_train, res, kernel_rbf, gamma = config_gamma)
-mse <- mean((predictions - y_test))
+res <- krr(y_train, X_train, best_lambda, config_kernel, gamma = config_gamma, d=config_d)
+predictions <- predict_oos(X_test, X_train, res, config_kernel, gamma = config_gamma, d=config_d)
+mse <- mean((predictions - y_test)^2)
 
 # Results ----------------------------------------------------------------------
 # z <- krr(y, X, lambda, kernel_linear)
@@ -207,7 +213,7 @@ predsINH <-
               kernel_inhomogeneous,
               d = 2)
 predsRBF <-
-  predict_oos(w_0[1], X_u, X_t, q_tilde, "rbf", kernel_rbf, gamma = config_gamma)
+  predict_oos(w_0[1], X_u, X_t, q_tilde, "rbf", config_kernel, gamma = config_gamma)
 
 # 
 # 
