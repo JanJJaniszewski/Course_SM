@@ -60,7 +60,6 @@ kernel_rbf <- function (X1, gamma, X2 = NULL, d=NULL) {
 }
 
 kernel_polyspline <- function (X1, X2=NULL, r=2){
-  # 
   
   if (is.null(X2)) {
     n <- nrow(X1)
@@ -87,6 +86,8 @@ kernel_polyspline <- function (X1, X2=NULL, r=2){
   return(k)
 }
 
+
+## why is this here?
 config_kernel <- kernel_polyspline
 
 ## Ridge Regression ------------------------------------------------------------
