@@ -182,8 +182,70 @@ pre code {
 <div id="data" class="section level2">
 <h2>Data</h2>
 <p>The dataset, obtained through Greene (2003), contains empirical evidence relating to the cost of the airline industry. It consists of a panel of 6 observations of Airlines in the United States over 15 years- from 1970 to 1984, yielding 90 observations in total. Data was collected for all six firms in the same fifteen years.</p>
-<p>Each observation consists of six variables relating to cost: airline, year, pf (fuel price), lf (load factor, which is the average capacity utilization of the fleet), output (revenue, measured in revenue per passenger-mile flown), and cost (total cost per $1,000). Fuel price, load factor, output, and cost are numerical variables. Airline is treated as an indicator variable that classifies each airline in a distinct category. We control for the year of observation; however, this is done by using a continuous variable instead of individual dummies, as this allows the prediction of future years. All summary statistics are shown in Table .</p>
+<p>Each observation consists of six variables relating to cost: airline, year, pf (fuel price), lf (load factor, which is the average capacity utilization of the fleet), output (revenue, measured in revenue per passenger-mile flown), and cost (total cost per $1,000). Fuel price, load factor, output, and cost are numerical variables. Airline is treated as an indicator variable that classifies each airline in a distinct category. We control for the year of observation; however, this is done by using a continuous variable instead of individual dummies, as this allows the prediction of future years. All summary statistics are shown in Table 1.</p>
 <p>All observations are used for the study. All variables except the airline indicator variable are scaled to create z-scores <span class="math inline">\((X – \mu) / \sigma\)</span> where <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma\)</span> represent the mean and the standard deviation, respectively. Scaling ensures that the variables are comparable, as our approach relies on the distance between observations.</p>
+<table>
+<caption>Summary Statistics</caption>
+<thead>
+<tr class="header">
+<th align="left">Variable</th>
+<th align="right">Count</th>
+<th align="right">Mean</th>
+<th align="right">Std</th>
+<th align="right">Min</th>
+<th align="right">25%</th>
+<th align="right">50%</th>
+<th align="right">75%</th>
+<th align="right">Max</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Revenue per Passenger-Mile Flown (in USD)</td>
+<td align="right">90</td>
+<td align="right">0.54</td>
+<td align="right">0.53</td>
+<td align="right">0.04</td>
+<td align="right">0.14</td>
+<td align="right">0.31</td>
+<td align="right">0.95</td>
+<td align="right">1.94</td>
+</tr>
+<tr class="even">
+<td align="left">Total Cost (in million USD)</td>
+<td align="right">90</td>
+<td align="right">1123</td>
+<td align="right">1192</td>
+<td align="right">69</td>
+<td align="right">292</td>
+<td align="right">637</td>
+<td align="right">1346</td>
+<td align="right">4748</td>
+</tr>
+<tr class="odd">
+<td align="left">Fuel Price</td>
+<td align="right">90</td>
+<td align="right">472</td>
+<td align="right">330</td>
+<td align="right">104</td>
+<td align="right">130</td>
+<td align="right">357</td>
+<td align="right">850</td>
+<td align="right">1016</td>
+</tr>
+<tr class="even">
+<td align="left">Load Factor</td>
+<td align="right">90</td>
+<td align="right">56.0%</td>
+<td align="right">5.3%</td>
+<td align="right">43.2%</td>
+<td align="right">52.9%</td>
+<td align="right">56.6%</td>
+<td align="right">59.5%</td>
+<td align="right">67.6%</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="methodology" class="section level2">
 <h2>Methodology</h2>
