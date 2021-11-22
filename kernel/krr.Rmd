@@ -29,5 +29,19 @@ Hmisc
 \section{Method}
 
 \section{Results}
+Analysis of the data and models used to predict airlines costs reveals that the airline cost predictions made by our best model are indeed significantly
+better than random ($R^2=0.96$).
+
+To arrive at this conclusion, we analyzed different parameters for the different kernels described in the method section as well as compared them to an OLS regression and the package built by \citet{groenemodel}.
+
+For all models, we used the same values for $\lambda$, namely 1, 5, 10, 0.001, 0.01, 0.1, 0.2, 0.5, and 100.
+
+\subsection{KRR with linear kernel}
+The analysis of the KRR with linear kernel reveals that the best predictions of the model are provided given higher/lower values for $\lambda$. 
+
+\subsection{Model with RBF kernel}
+For the RBF kernel analysis, we defined the $\gamma$ parameters as ... .
+
+The analysis reveals that the best predictions of the model are provided given higher/lower values for $\gamma$ as well as higher/lower values for $\lambda$. 
 
 \section{Discussion}

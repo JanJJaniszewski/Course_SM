@@ -57,6 +57,11 @@ predictions <- predict_oos(X_test, X_train, res, best_kernel_function, hyperpar 
 mse <- mean((predictions - y_test)^2)
 print(mse)
 
+# R squared --------------------------------------------------------------------
+SS.total <- sum((y_test - mean(y_test))^2)
+SS.regression <- sum((predictions - mean(y_test))^2)
+SS.regression/SS.total     # fraction of variation explained by the model
+
 # Plotting ---------------------------------------------------------------------
 crossv_sub <- crossv_output %>% filter(kernel == 'RBF')
 crossv_sub %>%
