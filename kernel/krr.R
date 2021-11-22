@@ -54,6 +54,7 @@ y_test <- df_test$output
 
 res <- krr(y_train, X_train, hyperpar = best_run$hyperparameter, kernel_function = best_kernel_function, lambda=best_run$lambda)
 predictions <- predict_oos(X_test, X_train, res, best_kernel_function, hyperpar = best_run$hyperparameter)
+predictions_train <- predict_oos(X_train, X_train, res, best_kernel_function, hyperpar = best_run$hyperparameter)
 mse <- mean((predictions - y_test)^2)
 print(mse)
 

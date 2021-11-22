@@ -44,4 +44,17 @@ For the RBF kernel analysis, we defined the $\gamma$ parameters as ... .
 
 The analysis reveals that the best predictions of the model are provided given higher/lower values for $\gamma$ as well as higher/lower values for $\lambda$. 
 
+```{r  qq-test, fig.cap = "QQ-plot of the best model predictions of costs vs. real values of costs for the final holdout data and line indicating perfect prediction location"}
+t1 <- tibble(real_costs = y_test, predicted_costs = predictions)
+ggplot(data=t1, aes(x=real_costs, y=predicted_costs)) + geom_point() + 
+  geom_abline(intercept = 0, slope = 1, size = 0.5)
+```
+
+```{r  qq-cv, fig.cap = "QQ-plot of the best model predictions of costs vs. real values of costs for the training data  and line indicating perfect prediction location"}
+t1 <- tibble(real_costs = y_train, predicted_costs = predictions_train)
+ggplot(data=t1, aes(x=real_costs, y=predicted_costs)) + geom_point() + 
+  geom_abline(intercept = 0, slope = 1, size = 0.5)
+```
+
+
 \section{Discussion}
