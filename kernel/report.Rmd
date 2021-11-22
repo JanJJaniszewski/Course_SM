@@ -10,9 +10,9 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, eval = FALSE)
+knitr::opts_chunk$set(echo = FALSE)
 source('./krr.R')
-
+library(kableExtra)
 ```
 
 ## Introduction
@@ -99,6 +99,7 @@ In this analysis, three kernels are computed: the radial basis function (RBF) ke
 \begin{equation} \label{eq:7}
 \text{PSK:\\}k_{ii'} = r^d, \text{ if } d=1,3,5,..., 
 \end{equation}
+
 $$
 k_{ii'} = r^dln(r), \text{ if } d=2,4,6,...\text{   .}
 $$
@@ -114,17 +115,14 @@ In both the cross-validation and the test set our predictions will be tested usi
 In the cross-validation step, the candidate values for $\lambda$ were 0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50 and 100, the candidates for $\gamma$ were 0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 2, 4, 5 and 10. The candidates for the degrees for the polyspline and the nonhomogeneous kernel were 1, 2, 3, 4, 5, 6, 7, 8, 9 and 10. The best combinations for each kernel togheter with the cross-validation MSE (CV-MSE) and the mean squared prediction error (MSPE).
 
 
-\begin{table}[h]
-\begin{tabular}{lll}
-\hline
-Kernel         & CV-MSE  & MSPE   & $\lambda$ & hyperparameter\\ \hline \hline
-Linear         & 0.0026  & 0.008  & 1 & -\\
-Nonhomogeneous & 0.00093 & 0.009  & 1 & 2\\
-Polyspline     & 0.0012  & 0.152  & 1 & 2\\
-RBF            & 0.00048 & 0.0026 & 0.001 & 0.05
-\end{tabular}
-\caption{\label{tab:Table 2}}
-\end{table}
+
+| kernel                                  | CV-MSE |  MSPE |  $\lambda$  |   Hyperparameter
+|:------------------------------------------|------:|------:|-----:|------:|------:|--:|
+| Linear                       |    0.0026|  0.008 | 0.1 |  - | 
+| Nonhomogeneous               |    0.00093 |  0.009 | 1 |    2 |  
+| Polyspline                   |    0.0012 |   0.152 |  1 |   2 |      
+| RBF                          |    0.00048 | 0.0026 | 0.001 | 0.05 | 
+Table 2: Model Fits (CV-MSE: Cross-validation Mean Squared Error, MSPE: Mean Squared Prediction Error.)
 
 
 The linear kernel achieves the best fit for low values of lambda $\lambda$, with the result optimized at $\lambda = 0.1$ ($MSE_{CV} = 0.0026, MSE_{test} = 0.008$; for more information, see Figure \ref{linearcomparison}). For the KRR with RBF kernel,the lowest measured MSE was achieved using $\lambda = 0.001$ and $\gamma = 0.05$ ($MSE_{CV} = 0.00048, MSE_{test} = 0.0026$(for more information, see Figure \ref{rbfcomparison}). The nonhomogeneous kernel and the polyspline kernel are optimized with $\lambda$ 1 and degress equals to 2. This combination gives us a $MSE_{CV}$ of
