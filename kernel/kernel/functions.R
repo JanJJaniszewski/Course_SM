@@ -16,18 +16,57 @@ p_load(MASS,mlbench, Hmisc,
        plotrix)
 
 # Functions --------------------------------------------------------------------
-## Kernels training ------------------------------------------------------------
+## ---------------------------------KERNELS-------------------------------------
+#-------------------------------------------------------------------------------
+# kernel_linear: constructs the kernel matrix based in the linear kernel. 
+#                Can be applied to training data or to construct ku and allow 
+#                out of sample predictions.
+#
+# Parameters:
+#     X:  matrix, contains independent variables
+#     X2: matrix, contains out-of-sample data, used in the construction of ku. If
+#                 NULL, X is used and k is obtained.
+# 
+# Returns:
+#     out: matrix, the kernel matrix
 kernel_linear <- function(X, X2 = NULL, ...) {
   if (is.null(X2)){X2 <- X}
   out <- X2 %*% t(X)
   return(out)
 }
+#-------------------------------------------------------------------------------
+# kernel_inhomogeneous: constructs the kernel matrix based in the inhomogeneous
+#                       kernel. 
+#                       Can be applied to training data or to construct ku and 
+#                       allow out of sample predictions.
+#
+# Parameters:
+#     X:  matrix, contains independent variables
+#     X2: matrix, contains out of sample data, used in the construction of ku. If
+#                 NULL, X is used and k is obtained.
+#     d:  float, the degree of the transformation
+# 
+# Returns:
+#     out: matrix, the kernel matrix
 
 kernel_inhomogeneous <- function(X, d, X2 = NULL, ...) {
   if (is.null(X2)){ X2 <- X}
   out <- (1 + X2 %*% t(X)) ^ d
   return(out)
 }
+#-------------------------------------------------------------------------------
+# kernel_rbf: constructs the kernel matrix based in the rbf kernel. 
+#                Can be applied to training data or to construct ku and allow 
+#                out of sample predictions.
+#
+# Parameters:
+#     X:  matrix, contains independent variables
+#     X2: matrix, contains out of sample data, used in the construction of ku. If
+#                 NULL, X is used and k is obtained.
+#     gamma: float, hyperparameter that penalized the distance among the x's
+# 
+# Returns:
+#     out: matrix, the kernel matrix
 
 kernel_rbf <- function (X1, gamma, X2 = NULL, ...) {
   
@@ -49,6 +88,19 @@ kernel_rbf <- function (X1, gamma, X2 = NULL, ...) {
   k <- exp(-gamma * D)
   return(k)
 }
+#-------------------------------------------------------------------------------
+# kernel_polyspline : constructs the kernel matrix based in the polyspline kernel. 
+#                Can be applied to training data or to construct ku and allow 
+#                out of sample predictions.
+#
+# Parameters:
+#     X:  matrix, contains independent variables
+#     X2: matrix, contains out of sample data, used in the construction of ku. If
+#                 NULL, X is used and k is obtained.
+#     r: float, degree of the polyspline.
+# 
+# Returns:
+#     out: matrix, the kernel matrix
 
 kernel_polyspline <- function (X1, r=2, X2=NULL, ...){
   
@@ -76,15 +128,31 @@ kernel_polyspline <- function (X1, r=2, X2=NULL, ...){
   
   return(k)
 }
-
+#-------------------------------------------------------------------------------
 ## Ridge Regression ------------------------------------------------------------
+#krr: function fits the Ridge Regression. Supports kernels.
+#
+#
+# Parameters:
+#     y:  vector, labels for the observations
+#     X:  matrix, contains the training observations to fit the model
+#     lambda: float, penalization
+#     kernel_function: the function to produce the kernel from the X matrix
+# 
+# Returns:
+#     preds:    vector, predictions
+#     q_tilde:  vector, equivalent to predictions without the intercept
+#     w_0:      float, intercept
+#     mean_DM:  vector, design matrix column means
+#     std_DM:   vector, design matrix column standard deviations
+
 krr <- function(y, X, lambda, kernel_function, ...) {
   n <- nrow(X)
   ones <- matrix(1, n, 1)
   mean_DM <-
-    colMeans(X)#Storages mean of the columns for the training set design matrix
+    colMeans(X) #Storages mean of the columns for the training set design matrix
   std_DM <-
-    apply(X, 2, sd)#Storages the std of the columns for the training set design matrix
+    apply(X, 2, sd) #Storages the std of the columns for the training set design matrix
   I <- diag(n)
   
   J <- I - (1 / n) * (ones %*% t(ones))
@@ -108,7 +176,18 @@ krr <- function(y, X, lambda, kernel_function, ...) {
   return(model)
 }
 
-## Prediction ------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+# predict_oos: Used the estimated model 
+#
+# Parameters:
+#     X_u:  matrix, independent variables, out-of-sample
+#     X_t:  matrix, independent variables, training data
+#     kernel_function: the function to produce the kernel from the X matrix
+#     ...:    extra parameters
+#
+# Returns:
+#     predictions: vector, out-of-sample predictions
+
 predict_oos <-
   function(X_u,
            X_t,
@@ -133,14 +212,14 @@ predict_oos <-
     return(predictions)
   }
 
-# Crosss Validation Functions --------------------------------------------------
+# Cross Validation Functions ---------------------------------------------------
+# Wrapped helper functions to facilitate the gridsearch implementation
 run_cv <- function(df_cv_train, df_cv_test, mygamma, mylambda, myr, myd){
   X_train <- dplyr::select(df_cv_train, -output) %>% as.matrix()
   y_train <- df_cv_train$output
   X_test <- dplyr::select(df_cv_test, -output) %>% as.matrix()
   y_test <- df_cv_test$output
   
-  # why are there so many variables here that are not defined in the function?
   res <- krr(y_train, X_train, lambda=mylambda, config_kernel, gamma=mygamma, d=myd, r=myr)
   predictions <- predict_oos(X_test, X_train, res, config_kernel, gamma=mygamma, d=myd, r=myr)
   mse <- mean((predictions - y_test)^2)
