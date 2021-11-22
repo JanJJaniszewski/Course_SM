@@ -26,19 +26,19 @@ p_load(MASS,mlbench,
 
 # Functions --------------------------------------------------------------------
 ## Kernels training ------------------------------------------------------------
-kernel_linear <- function(X, X2 = NULL, gamma=NULL, d=NULL) {
+kernel_linear <- function(X, X2 = NULL, gamma=NULL, d=NULL, r=NULL) {
   if (is.null(X2)){X2 <- X}
   out <- X2 %*% t(X)
   return(out)
 }
 
-kernel_inhomogeneous <- function(X, d, X2 = NULL, gamma=NULL) {
+kernel_inhomogeneous <- function(X, d, X2 = NULL, gamma=NULL, r=NULL) {
   if (is.null(X2)){ X2 <- X}
   out <- (1 + X2 %*% t(X)) ^ d
   return(out)
 }
 
-kernel_rbf <- function (X1, gamma, X2 = NULL, d=NULL) {
+kernel_rbf <- function (X1, gamma, X2 = NULL, d=NULL, r=NULL) {
  
   if (is.null(X2)) {
     n <- nrow(X1)
@@ -59,7 +59,7 @@ kernel_rbf <- function (X1, gamma, X2 = NULL, d=NULL) {
   return(k)
 }
 
-kernel_polyspline <- function (X1, X2=NULL, r=2){
+kernel_polyspline <- function (X1, X2=NULL, r=2, d=NULL, gamma=NULL){
   
   if (is.null(X2)) {
     n <- nrow(X1)
