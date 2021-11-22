@@ -6,6 +6,7 @@
 #     B: vector, contains the coefficients
 # Returns:
 #     rss: a float representing the residual sum of squares
+setwd("~/AA BDS/1-2 Supervised Machine Learning/Week 2")
 
 RSS <- function(X,B,y) {
   y_hat <- X %*% B

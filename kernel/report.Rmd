@@ -1,0 +1,103 @@
+---
+title: "Predicting Operational Efficiency Using Cost Metrics in the Airline Industry" 
+author: "Group 3"
+date: "18/11/2021"
+output:
+  pdf_document: 
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+## Introduction
+
+The system-wide global commercial airlines constitute a high-cost industry, with expenses of approximately 795 and 484 billion dollars globally in 2019 and 2020 (Iata, 2021). This is why  the revenue margins are highly dependent on its operational efficiency, the metric that measures the efficiency of profit earned as a function of operating costs. An industry is operationally efficient if conditions exist that allow participants to execute transactions and receive services at a price that equates fairly to the actual costs required to provide them. Airlines can become more efficient through improvement in a variety of areas, from which aircraft and crew utilization, payload, and fuel consumption are key (Schmidt, 2021). In this way, resources and the efficient use of such resources have a key impact in predicting profitability in airline firms. 
+
+The aim of this research is thus to predict operational efficiency in the airline industry by using key cost metrics. The predictions are relevant for both managers and stakeholders. On the one hand, they are key for managers to choose relevant strategies for the consolidation of the firms. On the other hand, the information allows for a better understanding of the predictors of financial development in the industry and provides more stable financial decisions. 
+
+The paper is structured as follows. In section 2, the airline data used for prediction. In section 3, the choice of kernel functions as a method is justified and outlined. In section 3, the results.... Finally, it is concluded that... 
+DISCUSSION PERSON, PLEASE ADD TWO RELEVANT SENTENCES HERE (ONE FOR RESULTS AND ONE FOR DISCUSSION) TO SUMMARIZE THE SECTIONS.
+
+
+## Data
+
+The dataset describes empirical evidence relating to the cost of the airline industry. It consists of a panel of 6 observations of Airlines in the United States over 15 years- from 1970 to 1985-, yielding 90 observations in total. All observations are used for the study after controlling for outliers. Each observation consists of six variables relating to cost:  airline, year,  pf (fuel price), lf (load factor, which is the average capacity utilization of the fleet), output (in revenue passenger miles), and cost (total cost per $1,000). Data was collected for all six firms in the same fifteen years, thus increasing comparability.  An exception is the variable airline, that is treated as an indicator variable that classifies each airline in a distinct category. Output is the predicted variable in this analysis, whereas the others are regressors. 
+
+## Methodology
+
+In the aim to use techniques that approach problems of learning from examples, regularization theory is used: it allows the formulation of regression problems of finding functions that minimizes a loss function (Evgeniou, Pontil, & Poggio, 1999, p. 1-4). In particular, kernels are used as a method. Such method allows the introduction of non-linear components to linear methods, thus maintaining the conveniency and ability of linear methods to not overfit. Kernels do so by embedding the points of any space into a new space where linearity can be applied via a non-linear feature map. The embedding computation is not made directly but through the kernel functions, built to be equivalent to the scalar products of the transformation (Hastie, Tibshirani, Friedman, 2008). In the analysis, polynomial kernels, radial basis function kernels and polyharmonic spline kernels are used.
+
+Specifically, let $X \rightarrow R$ be the space that contains the data points $x_1,...,x_n \in X$, and $\Phi: X \rightarrow R^d$ a feature map where $\Phi$ denotes the $n \times d$ matrix containing data points $\Phi(x_i)$ as rows. Then, a symmetric function $k: X \times X \rightarrow R^d$ is a kernel function if for all $n \geq 1$ in $X$ and $c_1,...,c_n \in R^d$, it holds that: 
+
+\begin{equation} \label{eq:1}
+\sum^n_{i,j = 1} c_ic_jk(x_i,x_j) \geq 0.
+\end{equation}
+
+The kernel function has a corresponding kernel matrix $k$ with entries $k_{ij}=k(x_i,x_j)$. By definition, a valid kernel matrix coincides with matrix $\Phi \cdot \Phi^T \in R^d$, having entries:
+
+\begin{equation} \label{eq:2}
+k_{ij} =  \space <\Phi(x_i) , \Phi(x_j)> \space = \Phi(x_i) \Phi(x_j)^T \text{ for all } x,y \text{ in } X.
+\end{equation}
+
+
+Given $X$ and $k$, $\mathcal{H}$ denotes a Hilbert space with scalar product $< \cdot , \cdot >_{\mathcal{H}}$. The Reproducing Kernel Hilbert Space (RKHS) is the vector space $\mathcal{H}$ in which equality (2) holds. 
+
+The aim of the method is to solve the general regression problem as a variational problem of finding the function $f$ that minimizes the functional:
+
+\begin{equation} \label{eq:3}
+\mathop{min H[f]}_{f \in \mathcal{H}} = \frac{1}{n} \sum^n_{i=1} (y_i - f(x_i)) + \lambda ||f||^2_K,
+\end{equation}
+
+where $||f||^2_K$ is a norm in the RKFH $\mathcal{H}$ defined by the positive definite function $K$, $n$ is the number of data points and $\lambda$ is the regularization parameter (Evgeniou, Pontil, & Poggio, 1999, p. 2). The term $\lambda ||f||^2_K$ is built as a quadratic penalty factor based on the Ridge regression, which imposes the penalty on the size of the regression coefficients. The introduction of kernels to this problem allows us to solve it purely in terms of kernel functions:
+
+\begin{equation} \label{eq:4}
+\mathop{maximize}_{\alpha \in R^n} \sum^n_{i=i} \alpha_i - \frac{1}{2} \sum^n_{i,j=1} \alpha_i \alpha_j Y_i Y_j K(X_i,Y_j), \\
+\end{equation}
+
+subject to: 
+$$
+0 \leq \alpha_i \leq \frac{c}{n} \space \space  \forall_i=1,...,n ,
+$$
+$$
+\sum^n_{i=i} \alpha_i Y_i = 0.
+$$
+
+The solution to the optimization problem can be found with the function $k$, ($X \times X$) with $k(x_i,y_i)=<\Phi(x_i),\Phi(x_j)>$.
+
+Kernels not only allow us to find the minimization functional, but are able to do so in a finite-dimensional substance even though its respective RKHS is an infinite dimensional vector space (Vapnik, 1995). This is because $\mathcal{H}$ can be subdivided in $\mathcal{H}_{data}$, the $span$ {$k_{xi},...,k_{xn}$}, and $\mathcal{H}_{comp}$, its orthogonal complement. Each vector $w \in \mathcal{H}$ is $w = w_{data} + w_{comp}$. The prediction of all functions with the same $w_{data}$ agree on all training points, and as such is not affected by $w_{comp}$. As such, the norm $w$ is smallest if $w_{comp}=0$, thus always being an optimal solution. In this way, kernels allows us to combat the computational difficulties related to very large number of parameters.  
+
+The kernel function $k$ must be a symmetric and positive semi-definite function. In this analysis, three kernels are computed: the radial basis function (RBF) kernel, the inhomogeneous polynomial kernel, and the polyhomogeneous spline kernel.Different kernels are used to compare their ability to predict the data without overfitting. First, the RBF has function: 
+
+\begin{equation} \label{eq:5}
+k_{ii'}= e^{(-\gamma||x_i-x_i'||^2)},
+\end{equation}
+
+with hyperparameter $\gamma>0$. The similarity at point $y$ to a fixed point $x$ is a function of their distance. Second, the inhomogeneous polynomial kernel has function:
+
+\begin{equation} \label{eq:6}
+k_{ii'} = (1 + x_i^Tx_i')^d, 
+\end{equation}
+
+
+with fixed degree $d>0$. It considers combinations of the features of input samples (the interaction features) to determine their similarity. Third, the polyhomogeneous spline kernel has function:
+
+\begin{equation} \label{eq:7}
+k_{ii'} = r^d, \text{ for odd-degree polyharmonic splines } d=1,3,5,..., 
+\end{equation}
+$$
+k_{ii'} = r^dln(r), \text{ for even-degree polyharmonic splines } d=2,4,6,...\text{   .}
+$$
+
+## Results
+
+
+## Discussion
+
+
+## References
+
+
+## Appendix I: Code

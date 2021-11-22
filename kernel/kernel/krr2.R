@@ -3,17 +3,16 @@ source('./config.R')
 
 # Script -----------------------------------------------------------------------
 load(datapath)
-
 df <- Airline
 df <- fastDummies::dummy_cols(df, select_columns = c('airline')) %>% dplyr::select(-airline)
 
-years_to_predict <- max(year) - config_years_to_predict_in_testset + 1
-df_train <- df %>% filter(year < years_to_predict)
-df_test <- df %>% filter(year >= years_to_predict)
+# don't we need more than 6 obs OOS?
+df_train <- df %>% filter(year < max(year))
+df_test <- df %>% filter(year == max(year))
 
 # Preprocessing ----------------------------------------------------------------
+# why is this scaling happening like this?
 df_test <- df_test %>% mutate(
-  # Scaling test data based on training data averages
   year = (year - mean(df_train$year)) / sd(df_train$year),
   cost = (cost - mean(df_train$cost)) / sd(df_train$cost),
   pf = (pf - mean(df_train$pf)) / sd(df_train$pf),
@@ -22,14 +21,26 @@ df_test <- df_test %>% mutate(
 
 df_train[,c('year', 'cost', 'pf', 'lf')] <- df_train[,c('year', 'cost', 'pf', 'lf')] %>% scale
 
-
 # Data analysis ----------------------------------------------------------------
 t1 <- Airline %>% group_by(year) %>% summarise_all(c(mean, sd))
 plot(t1$year, t1$output_fn1)
-
 Hmisc::describe(df_train)
 
 # Cross Validation -------------------------------------------------------------
+
+run_cv <- function(df_train, df_test, mygamma, mylambda, myr){
+  X_train <- dplyr::select(df_train, -output) %>% as.matrix()
+  y_train <- df_train$output
+  X_test <- dplyr::select(df_test, -output) %>% as.matrix()
+  y_test <- df_test$output
+  
+  # why are there so many variables here that are not defined in the function?
+  res <- krr(y_train, X_train, lambda=mylambda, config_kernel, gamma=mygamma, d=config_d)
+  predictions <- predict_oos(X_test, X_train, res, config_kernel, gamma=mygamma, d=config_d)
+  mse <- mean((predictions - y_test)^2)
+  return(mse)
+}
+
 cv <- df_train %>% split(.$year)
 cv <- tibble(year = c(1:length(names(cv))), test = cv)
 
@@ -40,15 +51,11 @@ cv$train <- map(cv$test, ~ filter_by_year(mean(.$year), df_train))
 crossv_cv <- tibble()
 for (config_lambda in config_lambdas){
   for (config_gamma in config_gammas){
-    for (config_r in config_rs){
-      for (config_d in config_ds){
-        cv_lambda <- cv
-        cv_lambda$lambda <- config_lambda
-        cv_lambda$gamma <- config_gamma
-        cv_lambda$mse <- map2_dbl(cv$train, cv$test, ~ run_cv(.x, .y, config_gamma, config_lambda, config_r, config_d))
-        crossv_cv <- bind_rows(crossv_cv, cv_lambda)
-      }
-    }
+    cv_lambda <- cv
+    cv_lambda$lambda <- config_lambda
+    cv_lambda$gamma <- config_gamma
+    cv_lambda$mse <- map2_dbl(cv$train, cv$test, ~ run_cv(.x, .y, config_gamma, config_lambda))
+    crossv_cv <- bind_rows(crossv_cv, cv_lambda)
   }
 }
 
