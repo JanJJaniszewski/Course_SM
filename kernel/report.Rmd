@@ -7,6 +7,15 @@ output:
     df_print: paged
   pdf_document:
     latex_engine: xelatex
+header-includes:
+  - \usepackage{graphicx} 
+  - \usepackage{float}       
+  - \usepackage[ngerman]{babel} 
+  - \usepackage{fancyhdr}
+  - \usepackage{hyperref}
+  - \pagenumbering{gobble}
+  - \usepackage{booktabs}
+  - \usepackage{natbib}  
 ---
 
 ```{r setup, include=FALSE}
