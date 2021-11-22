@@ -134,15 +134,15 @@ predict_oos <-
   }
 
 # Crosss Validation Functions --------------------------------------------------
-run_cv <- function(df_cv_train, df_cv_test, mygamma, mylambda, myr){
+run_cv <- function(df_cv_train, df_cv_test, mygamma, mylambda, myr, myd){
   X_train <- dplyr::select(df_cv_train, -output) %>% as.matrix()
   y_train <- df_cv_train$output
   X_test <- dplyr::select(df_cv_test, -output) %>% as.matrix()
   y_test <- df_cv_test$output
   
   # why are there so many variables here that are not defined in the function?
-  res <- krr(y_train, X_train, lambda=mylambda, config_kernel, gamma=mygamma, d=config_d)
-  predictions <- predict_oos(X_test, X_train, res, config_kernel, gamma=mygamma, d=config_d)
+  res <- krr(y_train, X_train, lambda=mylambda, config_kernel, gamma=mygamma, d=myd, r=myr)
+  predictions <- predict_oos(X_test, X_train, res, config_kernel, gamma=mygamma, d=myd, r=myr)
   mse <- mean((predictions - y_test)^2)
   return(mse)
 }

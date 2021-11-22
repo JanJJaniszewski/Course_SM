@@ -41,11 +41,15 @@ cv$train <- map(cv$test, ~ filter_by_year(mean(.$year), df_train))
 crossv_cv <- tibble()
 for (config_lambda in config_lambdas){
   for (config_gamma in config_gammas){
-    cv_lambda <- cv
-    cv_lambda$lambda <- config_lambda
-    cv_lambda$gamma <- config_gamma
-    cv_lambda$mse <- map2_dbl(cv$train, cv$test, ~ run_cv(.x, .y, config_gamma, config_lambda))
-    crossv_cv <- bind_rows(crossv_cv, cv_lambda)
+    for (config_r in config_rs){
+      for (config_d in config_ds){
+        cv_lambda <- cv
+        cv_lambda$lambda <- config_lambda
+        cv_lambda$gamma <- config_gamma
+        cv_lambda$mse <- map2_dbl(cv$train, cv$test, ~ run_cv(.x, .y, config_gamma, config_lambda, config_r, config_d))
+        crossv_cv <- bind_rows(crossv_cv, cv_lambda)
+      }
+    }
   }
 }
 
