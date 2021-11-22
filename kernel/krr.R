@@ -12,8 +12,8 @@ df_train <- df %>% filter(year < max(year) - config_years_to_predict_in_testset)
 df_test <- df %>% filter(year == max(year) - config_years_to_predict_in_testset)
 
 # Preprocessing ----------------------------------------------------------------
-# why is this scaling happening like this?
 df_test <- df_test %>% mutate(
+  # Scaling test data based on training data averages
   year = (year - mean(df_train$year)) / sd(df_train$year),
   cost = (cost - mean(df_train$cost)) / sd(df_train$cost),
   pf = (pf - mean(df_train$pf)) / sd(df_train$pf),
@@ -22,9 +22,12 @@ df_test <- df_test %>% mutate(
 
 df_train[,c('year', 'cost', 'pf', 'lf')] <- df_train[,c('year', 'cost', 'pf', 'lf')] %>% scale
 
+
 # Data analysis ----------------------------------------------------------------
 t1 <- Airline %>% group_by(year) %>% summarise_all(c(mean, sd))
 plot(t1$year, t1$output_fn1)
+
+Hmisc::describe(df_train)
 
 # Cross Validation -------------------------------------------------------------
 

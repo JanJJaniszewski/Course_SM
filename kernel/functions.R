@@ -1,7 +1,7 @@
 # Packages ---------------------------------------------------------------------
 #install.packages(c("SVMMaj", "ISLR", "plotrix"))
 library(pacman)
-p_load(MASS,mlbench,
+p_load(MASS,mlbench, Hmisc,
        tidyverse, tidymodels, parsnip, mlbench,
        caret, modelr,
        rbenchmark,
