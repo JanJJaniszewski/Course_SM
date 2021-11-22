@@ -37,7 +37,7 @@ filter_by_year <- function(filteryear, df){df %>% filter(df$year != filteryear)}
 cv$train <- map(cv$test, ~ filter_by_year(mean(.$year), df_train))
 
 # Gridsearch -------------------------------------------------------------------
-crossv_output <- compare_kernels(cv, config_lambdas, my_verbose=T)
+crossv_output <- compare_kernels(cv, config_lambdas, my_verbose=F)
 
 crossv_output <- crossv_output %>% select(c(lambda, hyperparameter, mse, kernel)) %>% group_by(kernel, hyperparameter, lambda) %>% summarise_all(mean) 
 best_run <- crossv_output %>% filter(mse == min(crossv_output$mse))
@@ -56,6 +56,14 @@ res <- krr(y_train, X_train, hyperpar = best_run$hyperparameter, kernel_function
 predictions <- predict_oos(X_test, X_train, res, best_kernel_function, hyperpar = best_run$hyperparameter)
 mse <- mean((predictions - y_test)^2)
 print(mse)
+
+# Plotting ---------------------------------------------------------------------
+crossv_sub <- crossv_output %>% filter(kernel == 'RBF')
+crossv_sub %>%
+  mutate(hyperparameter = log(hyperparameter), lambda=log(lambda)) %>%
+  ggplot(data=., aes(lambda, hyperparameter, fill= mse)) + 
+  geom_tile() + 
+  scale_fill_gradient(low = "white", high = "red")
 
 # Comparison -------------------------------------------------------------------
 ## LM --------------------------------------------------------------------------
