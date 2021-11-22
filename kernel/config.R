@@ -7,3 +7,4 @@ config_gammas <- c(0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 10)
 config_k <- 20
 config_r <- c(2, 3, 4, 5, 6, 7, 8, 9, 10)
 config_kernel <- kernel_polyspline
+config_years_to_predict_in_testset <- 1 # 0 = 1 year, 1 = 2 years, ...

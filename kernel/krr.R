@@ -8,9 +8,8 @@ df <- Airline
 
 df <- fastDummies::dummy_cols(df, select_columns = c('airline')) %>% dplyr::select(-airline)
 
-# don't we need more than 6 obs OOS?
-df_train <- df %>% filter(year < max(year))
-df_test <- df %>% filter(year == max(year))
+df_train <- df %>% filter(year < max(year) - config_years_to_predict_in_testset)
+df_test <- df %>% filter(year == max(year) - config_years_to_predict_in_testset)
 
 # Preprocessing ----------------------------------------------------------------
 # why is this scaling happening like this?
