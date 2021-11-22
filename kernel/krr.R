@@ -71,6 +71,13 @@ crossv_sub %>%
   geom_tile() + 
   scale_fill_gradient(low = "white", high = "red")
 
+crossv_sub <- crossv_output %>% filter(kernel == 'linear')
+crossv_sub %>%
+  mutate(lambda=log(lambda)) %>%
+  group_by(lambda) %>% summarise(mse = mean(mse)) %>%
+  ggplot(data=., aes(lambda, mse)) + 
+  geom_line()
+
 # Comparison -------------------------------------------------------------------
 ## LM --------------------------------------------------------------------------
 lm_model <- lm(y_train ~ ., data=as.data.frame(cbind(X_train, y_train)))

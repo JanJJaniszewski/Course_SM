@@ -29,32 +29,55 @@ Hmisc
 \section{Method}
 
 \section{Results}
-Analysis of the data and models used to predict airlines costs reveals that the airline cost predictions made by our best model are indeed significantly
-better than random ($R^2=0.96$).
 
-To arrive at this conclusion, we analyzed different parameters for the different kernels described in the method section as well as compared them to an OLS regression and the package built by \citet{groenemodel}.
 
-For all models, we used the same values for $\lambda$, namely 1, 5, 10, 0.001, 0.01, 0.1, 0.2, 0.5, and 100.
-
-\subsection{KRR with linear kernel}
-The analysis of the KRR with linear kernel reveals that the best predictions of the model are provided given higher/lower values for $\lambda$. 
-
-\subsection{Model with RBF kernel}
-For the RBF kernel analysis, we defined the $\gamma$ parameters as ... .
-
-The analysis reveals that the best predictions of the model are provided given higher/lower values for $\gamma$ as well as higher/lower values for $\lambda$. 
-
-```{r  qq-test, fig.cap = "QQ-plot of the best model predictions of costs vs. real values of costs for the final holdout data and line indicating perfect prediction location"}
+```{r  qq-test, fig.cap = "QQ-plot of the best KRR model predictions of costs vs. real values of costs for the final holdout data and line indicating perfect prediction location"}
 t1 <- tibble(real_costs = y_test, predicted_costs = predictions)
 ggplot(data=t1, aes(x=real_costs, y=predicted_costs)) + geom_point() + 
   geom_abline(intercept = 0, slope = 1, size = 0.5)
 ```
 
-```{r  qq-cv, fig.cap = "QQ-plot of the best model predictions of costs vs. real values of costs for the training data  and line indicating perfect prediction location"}
+```{r  qq-cv, fig.cap = "QQ-plot of the best KRR model predictions of costs vs. real values of costs for the training data  and line indicating perfect prediction location"}
 t1 <- tibble(real_costs = y_train, predicted_costs = predictions_train)
 ggplot(data=t1, aes(x=real_costs, y=predicted_costs)) + geom_point() + 
   geom_abline(intercept = 0, slope = 1, size = 0.5)
 ```
+```{r  linearcomparison, fig.cap = "KRR with linear kernel: Impact of the choice of lambda parameter on the MSE"}
+crossv_sub <- crossv_output %>% filter(kernel == 'linear')
+crossv_sub %>%
+  mutate(lambda=log(lambda)) %>%
+  group_by(lambda) %>% summarise(mse = mean(mse)) %>%
+  ggplot(data=., aes(lambda, mse)) + 
+  labs(x ="Log(Lambda)", y = "MSE") +
+  geom_line()
+```
+```{r  rbfcomparison, fig.cap = "KRR with RBF kernel: MSE for different combinations of lambda and gamma"}
+crossv_sub <- crossv_output %>% filter(kernel == 'RBF')
+crossv_sub %>%
+  mutate(hyperparameter = log(hyperparameter), lambda=log(lambda)) %>%
+  ggplot(data=., aes(lambda, hyperparameter, fill= mse)) + 
+  geom_tile() + 
+  labs(x ="Log(Lambda)", y = "Log(Gamma)") +
+  scale_fill_gradient(low = "darkgreen", high = "darkred")
+```
+```{r  inhomogeneous, fig.cap = "KRR with inhomogeneous kernel: MSE for different combinations of lambda and d"}
+crossv_sub <- crossv_output %>% filter(kernel == 'inhomogeneous')
+crossv_sub %>%
+  mutate(hyperparameter = log(hyperparameter), lambda=log(lambda)) %>%
+  ggplot(data=., aes(lambda, hyperparameter, fill= mse)) + 
+  geom_tile() + 
+  labs(x ="Log(Lambda)", y = "Log(d)") +
+  scale_fill_gradient(low = "darkgreen", high = "darkred")
+```
 
+```{r  polyspline, fig.cap = "KRR with polynomial spline kernel: MSE for different combinations of lambda and r"}
+crossv_sub <- crossv_output %>% filter(kernel == 'polyspline')
+crossv_sub %>%
+  mutate(hyperparameter = log(hyperparameter), lambda=log(lambda)) %>%
+  ggplot(data=., aes(lambda, hyperparameter, fill= mse)) + 
+  geom_tile() + 
+  labs(x ="Log(Lambda)", y = "Log(R)") +
+  scale_fill_gradient(low = "darkgreen", high = "darkred")
+```
 
 \section{Discussion}
