@@ -42,11 +42,11 @@ All observations are used for the study. All variables except the airline indica
 \scriptsize
 \begin{tabular}{lllllllll}
 \hline
-Variable                                  & Count & Mean    & Std     & Min    & 25\%   & 50\%   & 75\%    & Max     \\
+Variable                                  & Count & Mean    & SD     & Mininimum    & 25\%   & 50\%   & 75\%    & Maximum     \\
 \hline
 Revenue per Passenger-Mile Flown (in USD)                   & 90    & 0.54    & 0.53    & 0.04   & 0.14   & 0.31   & 0.95    & 1.94    \\
-Total Cost (in million USD)               & 90    & 1,122.52 & 1,192.07 & 68.98  & 292.05 & 637.00 & 1,345.97 & 4,748.32 \\
-Fuel Price (x1,000)                       & 90    & 471.68  & 329.50  & 103.80 & 129.85 & 357.43 & 849.84  & 1,015.61 \\
+Total Cost (in million USD)               & 90    & 1122.52 & 1192.07 & 68.98  & 292.05 & 637.00 & 1345.97 & 4748.32 \\
+Fuel Price (x 1000)                       & 90    & 471.68  & 329.50  & 103.80 & 129.85 & 357.43 & 849.84  & 1015.61 \\
 Load Factor                               & 90    & 56.0\%  & 5.3\%   & 43.2\% & 52.9\% & 56.6\% & 59.5\%  & 67.6\ \\
 \hline
 \end{tabular}
@@ -120,13 +120,105 @@ In both the cross-validation and the test set our predictions will be tested usi
 
 
 ## Results
+\section{Results}
+Analysis of the data and models used to predict airlines costs reveals that the airline cost predictions made by our best model are indeed significantly
+better than random ($R^2=0.96$). An analysis of the QQ-plot for our cross-validation dataset as well as the test set reveals that all predictions of our model are close to their real values (i.e. there are no prediction outliers; see Figures \ref{QQ_train} and \ref{QQ_test}).
+
+```{r  QQ_test, fig.cap = "QQ-plot of the best KRR model predictions of costs vs. real values of costs for the final holdout data and line indicating perfect prediction location"}
+t1 <- tibble(real_costs = y_test, predicted_costs = predictions)
+ggplot(data=t1, aes(x=real_costs, y=predicted_costs)) + geom_point() + 
+  geom_abline(intercept = 0, slope = 1, size = 0.5)
+```
+
+```{r  QQ_train, fig.cap = "QQ-plot of the best KRR model predictions of costs vs. real values of costs for the training data  and line indicating perfect prediction location"}
+t1 <- tibble(real_costs = y_train, predicted_costs = predictions_train)
+ggplot(data=t1, aes(x=real_costs, y=predicted_costs)) + geom_point() + 
+  geom_abline(intercept = 0, slope = 1, size = 0.5)
+```
+
+\subsection{Cross-validation and Out-of-sample Fit Estimates}
+
+The data at hand includes a time-series component. In order to test the models against a real world scenario, it was split according to that nature: the test data comprehends the last 3 years of observations and the rest is used for training purposes. The train data is also used to obtain the hyperparameter combinations that optimizes the prediction performance of the models: a gridsearch was done using 20-fold cross-validation (the partitions splits are grouped by year, as in the train/data set split), and the out-of-sample performance was approximated by the mean 'mean squared error' obtained at each iteration.
+
+The mse estimate on the test set is also obtained for each kernel, at the optimal hyperparameter mix.
+
+\subsection{Cross-validation results}
+To arrive at this conclusion, we analyzed different parameters for the different kernels described in the method section as well as compared them to an OLS regression and the package built by \citet{groenemodel}.
+
+For all models, we used the same values for $\lambda$, namely 0.001, 0.01, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50 and 100.
+
+\subsection{KRR with Linear Kernel}
+The analysis of the KRR with linear kernel reveals that the best predictions of the model are provided given lower values for $\lambda$, with the result optimized at $\lambda = 0.1$ ($MSE_{CV} = 0.0026, MSE_{test} = 0.008$; for more information, see Figure \ref{linearcomparison}). 
+
+```{r  linearcomparison, fig.cap = "KRR with linear kernel: Impact of the choice of lambda parameter on the MSE"}
+crossv_sub <- crossv_output %>% filter(kernel == 'linear')
+crossv_sub %>%
+  mutate(lambda=log(lambda)) %>%
+  group_by(lambda) %>% summarise(mse = mean(mse)) %>%
+  ggplot(data=., aes(lambda, mse)) + 
+  labs(x ="Log(Lambda)", y = "MSE") +
+  geom_line()
+```
+
+\subsection{KRR with RBF Kernel}
+For the KRR with RBF kernel, $\gamma$ was set to values between 0.01 and 10 ($\gamma \in [0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 2, 4, 5, 10]$. The lowest measured MSE was achieved using $\lambda = 0.001$ and $\gamma = 0.05$ ($MSE_{CV} = 0.00048, MSE_{test} = 0.0026$; for more information, see Figure \ref{rbfcomparison}).
+
+```{r  rbfcomparison, fig.cap = "KRR with RBF kernel: MSE for different combinations of lambda and gamma"}
+crossv_sub <- crossv_output %>% filter(kernel == 'RBF')
+crossv_sub %>%
+  mutate(hyperparameter = log(hyperparameter), lambda=log(lambda)) %>%
+  ggplot(data=., aes(lambda, hyperparameter, fill= mse)) + 
+  geom_tile() + 
+  labs(x ="Log(Lambda)", y = "Log(Gamma)") +
+  scale_fill_gradient(low = "darkgreen", high = "darkred")
+```
+
+\subsection{KRR with Nonhomogeneous Kernel}
+To optimize the hyperparameters of the nonhomogeneus kerner, we performed a grid search with the values 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 for the degree of the transformation. We obtained the minimum mse with the combination degree equals to 2 and lambda equals to 1.
+
+The mean mse for the out-of-sample predictions under this model configuration is 0.00093 in the cross-validation and 0.009 in the test set (for more information, see Figure \ref{inhomogeneouscomparison})
+
+
+```{r  inhomogeneouscomparison, fig.cap = "KRR with inhomogeneous kernel: MSE for different combinations of lambda and d"}
+crossv_sub <- crossv_output %>% filter(kernel == 'inhomogeneous')
+crossv_sub %>%
+  mutate(hyperparameter = log(hyperparameter), lambda=log(lambda)) %>%
+  ggplot(data=., aes(lambda, hyperparameter, fill= mse)) + 
+  geom_tile() + 
+  labs(x ="Log(Lambda)", y = "Log(d)") +
+  scale_fill_gradient(low = "darkgreen", high = "darkred")
+```
+
+\subsection{KRR with polyspline kernel}
+For the polyspline kernel, we defined the canditates for the hyperparameter degree as 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, and obtained the same combination as in the nonhomogeneous kernel: a degree of 2 and a lambda of 1. 
+
+The resulting mse of the out-of-sample predictions is slightly higher than for the Nonhomogeneous kernel, at 0.0012 in the crossvalidation and 0.152 in the test set (for more information, see Figure \ref{polysplinecomparison}).
+
+
+```{r  polysplinecomparison, fig.cap = "KRR with polynomial spline kernel: MSE for different combinations of lambda and r"}
+crossv_sub <- crossv_output %>% filter(kernel == 'polyspline')
+crossv_sub %>%
+  mutate(hyperparameter = log(hyperparameter), lambda=log(lambda)) %>%
+  ggplot(data=., aes(lambda, hyperparameter, fill= mse)) + 
+  geom_tile() + 
+  labs(x ="Log(Lambda)", y = "Log(R)") +
+  scale_fill_gradient(low = "darkgreen", high = "darkred")
+```
+
+\subsection{Bench-Marking}
+
+The kernel ridge regression was compared with the linear regression model and to the implementation available in the dsmle package.
+
+The results indicate a good performance of the proprietary implementation: the linear regression showed a MSE of 0.572,
+while the proprietary kernel ridge regression with the optimal combination of kernel and hyperparameters (RBF; parameters set at $\gamma = 0.05$ and $\lambda = 0.001$) predicts with $MSE = 0.0026$. The dsmle implementation (using the same parameters and kernel) is 0.30. As further comparison, the combination 'inhomogeneous kernel', degree of 2 and lambda equals to 1 yields a MSE of 0.01729 for the proprietary implementation and 0.0070 for the MSE of the dsmle package. 
+
 
 
 ## Discussion
 
 
 ## References
-Evgeniou, T., Pontil, M., & Poggio, T. (1999). Regularization Netowrks and Support Vector Machines. Advances In Computational Mathematics, 13, 1-50. Retrieved 22 November 2021, from.
+Evgeniou, T., Pontil, M., & Poggio, T. (1999). Regularization Networks and Support Vector Machines. Advances In Computational Mathematics, 13, 1-50. Retrieved 22 November 2021, from.
 
 Hastie, T., Tibshirani, R., & Friedman, J. (2008). The Elements of Statistical Learning: Data Mining, Inference, and Prediction (2nd ed.). Springer.
 
