@@ -19,7 +19,7 @@ header-includes:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE, eval = FALSE)
 source('./krr.R')
 
 ```
@@ -49,7 +49,7 @@ All observations are used for the study. All variables except the airline indica
 | Total Cost (in million USD)               |    90 |  1123 | 1192 |    69 |   292 |   637 |  1346 |  4748 |
 | Fuel Price                                |    90 |   472 |  330 |   104 |   130 |   357 |   850 |  1016 |
 | Load Factor                               |    90 | 56.0% | 5.3% | 43.2% | 52.9% | 56.6% | 59.5% | 67.6% |
-Table NUMBER: Summary Statistics (SD: Standard deviation)
+Table 1: Summary Statistics (SD: Standard deviation)
 
 ## Methodology
 
@@ -111,41 +111,34 @@ In this analysis, three kernels are computed: the radial basis function (RBF) ke
 $$
 k_{ii'} = r^dln(r), \text{ if } d=2,4,6,...\text{   .}
 $$
-Intuitively, RDB captures the similarity at point $y$ to a fixed point $x$ as a function of their distance. IPK considers combinations of the features of input samples (interaction features) to determine similarity. PSK ... ADD ONE SENTENCE TO DESCRIBE INTUITIVELY WHAT IT DOES.
+Intuitively, RBF captures the similarity at point $y$ to a fixed point $x$ as a function of their distance. IPK considers combinations of the features of input samples (interaction features) to determine similarity.
+
+The models include hyperparameters for the Ridge Regression and for the kernel function (expect the liner kernel). A 20-fold cross-validation will be used to search for the hyperparameters that optimizes each model. The models will be later trained on the whole training data set (using the optimal parameters) and evaluated using the test data. As data at hand includes a time-series component, we must split it according to that nature: the test data comprehends the last 3 years of observations and the rest is used for training purposes. The folds in the cross-validation are also grouped by year.
 
 In both the cross-validation and the test set our predictions will be tested using the mean-squared prediction error ($MSPE$). $MSPE= \frac{1}{n}\sum^{n+q}_{i=n}(y_{i} - \hat{y}_{i})^{2}$, where $y_{i}$ is an output variable, and $\hat{y}_{i}$ is the predicted value over that period. In this example, $n$ is the number of observations in the training set, $q$ the number of observations in the test set. In each case a lower MSPE will be considered better predictive performance. 
 
 
 ## Results
-\section{Results}
-Analysis of the data and models used to predict airlines costs reveals that the airline cost predictions made by our best model are indeed significantly
-better than random ($R^2=0.96$). An analysis of the QQ-plot for our cross-validation dataset as well as the test set reveals that all predictions of our model are close to their real values (i.e. there are no prediction outliers; see Figures \ref{QQ_train} and \ref{QQ_test}).
 
-```{r  QQ_test, fig.cap = "QQ-plot of the best KRR model predictions of costs vs. real values of costs for the final holdout data and line indicating perfect prediction location"}
-t1 <- tibble(real_costs = y_test, predicted_costs = predictions)
-ggplot(data=t1, aes(x=real_costs, y=predicted_costs)) + geom_point() + 
-  geom_abline(intercept = 0, slope = 1, size = 0.5)
-```
+In the cross-validation step, the candidate values for $\lambda$ were 0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50 and 100, the candidates for $\gamma$ were 0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 2, 4, 5 and 10. The candidates for the degrees for the polyspline and the nonhomogeneous kernel were 1, 2, 3, 4, 5, 6, 7, 8, 9 and 10. The best combinations for each kernel togheter with the cross-validation MSE (CV-MSE) and the mean squared prediction error (MSPE).
 
-```{r  QQ_train, fig.cap = "QQ-plot of the best KRR model predictions of costs vs. real values of costs for the training data  and line indicating perfect prediction location"}
-t1 <- tibble(real_costs = y_train, predicted_costs = predictions_train)
-ggplot(data=t1, aes(x=real_costs, y=predicted_costs)) + geom_point() + 
-  geom_abline(intercept = 0, slope = 1, size = 0.5)
-```
 
-\subsection{Cross-validation and Out-of-sample Fit Estimates}
+\begin{table}[h]
+\begin{tabular}{lll}
+\hline
+Kernel         & CV-MSE  & MSPE   & $\lambda$ & hyperparameter\\ \hline \hline
+Linear         & 0.0026  & 0.008  & 1 & -\\
+Nonhomogeneous & 0.00093 & 0.009  & 1 & 2\\
+Polyspline     & 0.0012  & 0.152  & 1 & 2\\
+RBF            & 0.00048 & 0.0026 & 0.001 & 0.05
+\end{tabular}
+\caption{\label{tab:Table 2}}
+\end{table}
 
-The data at hand includes a time-series component. In order to test the models against a real world scenario, it was split according to that nature: the test data comprehends the last 3 years of observations and the rest is used for training purposes. The train data is also used to obtain the hyperparameter combinations that optimizes the prediction performance of the models: a gridsearch was done using 20-fold cross-validation (the partitions splits are grouped by year, as in the train/data set split), and the out-of-sample performance was approximated by the mean 'mean squared error' obtained at each iteration.
 
-The mse estimate on the test set is also obtained for each kernel, at the optimal hyperparameter mix.
-
-\subsection{Cross-validation results}
-To arrive at this conclusion, we analyzed different parameters for the different kernels described in the method section as well as compared them to an OLS regression and the package built by \citet{groenemodel}.
-
-For all models, we used the same values for $\lambda$, namely 0.001, 0.01, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50 and 100.
-
-\subsection{KRR with Linear Kernel}
-The analysis of the KRR with linear kernel reveals that the best predictions of the model are provided given lower values for $\lambda$, with the result optimized at $\lambda = 0.1$ ($MSE_{CV} = 0.0026, MSE_{test} = 0.008$; for more information, see Figure \ref{linearcomparison}). 
+The linear kernel achieves the best fit for low values of lambda $\lambda$, with the result optimized at $\lambda = 0.1$ ($MSE_{CV} = 0.0026, MSE_{test} = 0.008$; for more information, see Figure \ref{linearcomparison}). For the KRR with RBF kernel,the lowest measured MSE was achieved using $\lambda = 0.001$ and $\gamma = 0.05$ ($MSE_{CV} = 0.00048, MSE_{test} = 0.0026$(for more information, see Figure \ref{rbfcomparison}). The nonhomogeneous kernel and the polyspline kernel are optimized with $\lambda$ 1 and degress equals to 2. This combination gives us a $MSE_{CV}$ of
+0.0009 and $MSE_{test}$ of 0.0090 for the nonhomogeneous kernel (see \ref{inhomogeneouscomparison}) and $MSE_{CV}$ of
+0.0012 and $MSE_{test}$ of 0.152 for the polyspline (see Figure \ref{polysplinecomparison}).
 
 ```{r  linearcomparison, fig.cap = "KRR with linear kernel: Impact of the choice of lambda parameter on the MSE"}
 crossv_sub <- crossv_output %>% filter(kernel == 'linear')
@@ -157,9 +150,6 @@ crossv_sub %>%
   geom_line()
 ```
 
-\subsection{KRR with RBF Kernel}
-For the KRR with RBF kernel, $\gamma$ was set to values between 0.01 and 10 ($\gamma \in [0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 2, 4, 5, 10]$. The lowest measured MSE was achieved using $\lambda = 0.001$ and $\gamma = 0.05$ ($MSE_{CV} = 0.00048, MSE_{test} = 0.0026$; for more information, see Figure \ref{rbfcomparison}).
-
 ```{r  rbfcomparison, fig.cap = "KRR with RBF kernel: MSE for different combinations of lambda and gamma"}
 crossv_sub <- crossv_output %>% filter(kernel == 'RBF')
 crossv_sub %>%
@@ -170,48 +160,37 @@ crossv_sub %>%
   scale_fill_gradient(low = "darkgreen", high = "darkred")
 ```
 
-\subsection{KRR with Nonhomogeneous Kernel}
-To optimize the hyperparameters of the nonhomogeneus kerner, we performed a grid search with the values 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 for the degree of the transformation. We obtained the minimum mse with the combination degree equals to 2 and lambda equals to 1.
-
-The mean mse for the out-of-sample predictions under this model configuration is 0.00093 in the cross-validation and 0.009 in the test set (for more information, see Figure \ref{inhomogeneouscomparison})
-
-
+  
 ```{r  inhomogeneouscomparison, fig.cap = "KRR with inhomogeneous kernel: MSE for different combinations of lambda and d"}
 crossv_sub <- crossv_output %>% filter(kernel == 'inhomogeneous')
 crossv_sub %>%
-  mutate(hyperparameter = log(hyperparameter), lambda=log(lambda)) %>%
+  mutate(hyperparameter = hyperparameter, lambda=log(lambda)) %>%
   ggplot(data=., aes(lambda, hyperparameter, fill= mse)) + 
   geom_tile() + 
-  labs(x ="Log(Lambda)", y = "Log(d)") +
+  labs(x ="Log(Lambda)", y = "Degree") +
   scale_fill_gradient(low = "darkgreen", high = "darkred")
 ```
-
-\subsection{KRR with polyspline kernel}
-For the polyspline kernel, we defined the canditates for the hyperparameter degree as 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, and obtained the same combination as in the nonhomogeneous kernel: a degree of 2 and a lambda of 1. 
-
-The resulting mse of the out-of-sample predictions is slightly higher than for the Nonhomogeneous kernel, at 0.0012 in the crossvalidation and 0.152 in the test set (for more information, see Figure \ref{polysplinecomparison}).
-
 
 ```{r  polysplinecomparison, fig.cap = "KRR with polynomial spline kernel: MSE for different combinations of lambda and r"}
 crossv_sub <- crossv_output %>% filter(kernel == 'polyspline')
 crossv_sub %>%
-  mutate(hyperparameter = log(hyperparameter), lambda=log(lambda)) %>%
+  mutate(hyperparameter = hyperparameter, lambda=log(lambda)) %>%
   ggplot(data=., aes(lambda, hyperparameter, fill= mse)) + 
   geom_tile() + 
-  labs(x ="Log(Lambda)", y = "Log(R)") +
+  labs(x ="Log(Lambda)", y = "R") +
   scale_fill_gradient(low = "darkgreen", high = "darkred")
 ```
-
-\subsection{Bench-Marking}
 
 The kernel ridge regression was compared with the linear regression model and to the implementation available in the dsmle package.
 
 The results indicate a good performance of the proprietary implementation: the linear regression showed a MSE of 0.572,
-while the proprietary kernel ridge regression with the optimal combination of kernel and hyperparameters (RBF; parameters set at $\gamma = 0.05$ and $\lambda = 0.001$) predicts with $MSE = 0.0026$. The dsmle implementation (using the same parameters and kernel) is 0.30. As further comparison, the combination 'inhomogeneous kernel', degree of 2 and lambda equals to 1 yields a MSE of 0.01729 for the proprietary implementation and 0.0070 for the MSE of the dsmle package. 
-
-
+while the proprietary kernel ridge regression with the optimal combination of kernel and hyperparameters (RBF; parameters set at $\gamma = 0.05$ and $\lambda = 0.001$) predicts with $MSPE = 0.0026$. The dsmle implementation (using the same parameters and kernel) yields a $MSPE$ of 0.30. As further comparison, the combination 'inhomogeneous kernel', degree of 2 and lambda equals to 1 yields a MSE of 0.01729 for the proprietary implementation and 0.0070 for the MSE of the dsmle package. 
 
 ## Discussion
+
+The aim of this research was to predict operational efficiency in the airline industry by using key cost metrics. Using kernel ridge regressions, it is concluded that predictions of operational efficiency using cost metrics are close to their real values. Among the kernels, the radial basis function is recommended for its performance. Using this model, it is concluded that these predictions are significantly better than random ($R^2=0.96$). This model allows managers to predict revenues given the most common costs in the airline industry. Furthermore, stakeholders can understand and anticipate revenues given certain cost structures, thus reducing risk. In future research, it would be interesting to include more variables that affect cost in which managers have a high degree of control, such as airline marketing and product policy, airline financial policy, corporate strategy, and the quality of management. Including these dimensions in the predictions will allow for analyses of operational efficiency where there is room for change and improvement.
+
+
 
 
 ## References
