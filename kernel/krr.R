@@ -8,8 +8,9 @@ df <- Airline
 
 df <- fastDummies::dummy_cols(df, select_columns = c('airline')) %>% dplyr::select(-airline)
 
-df_train <- df %>% filter(year < max(year) - config_years_to_predict_in_testset)
-df_test <- df %>% filter(year == max(year) - config_years_to_predict_in_testset)
+years_to_predict <- max(year) - config_years_to_predict_in_testset + 1
+df_train <- df %>% filter(year < years_to_predict)
+df_test <- df %>% filter(year >= years_to_predict)
 
 # Preprocessing ----------------------------------------------------------------
 df_test <- df_test %>% mutate(
@@ -30,20 +31,6 @@ plot(t1$year, t1$output_fn1)
 Hmisc::describe(df_train)
 
 # Cross Validation -------------------------------------------------------------
-
-run_cv <- function(df_train, df_test, mygamma, mylambda, myr){
-  X_train <- dplyr::select(df_train, -output) %>% as.matrix()
-  y_train <- df_train$output
-  X_test <- dplyr::select(df_test, -output) %>% as.matrix()
-  y_test <- df_test$output
-  
-  # why are there so many variables here that are not defined in the function?
-  res <- krr(y_train, X_train, lambda=mylambda, config_kernel, gamma=mygamma, d=config_d)
-  predictions <- predict_oos(X_test, X_train, res, config_kernel, gamma=mygamma, d=config_d)
-  mse <- mean((predictions - y_test)^2)
-  return(mse)
-}
-
 cv <- df_train %>% split(.$year)
 cv <- tibble(year = c(1:length(names(cv))), test = cv)
 
