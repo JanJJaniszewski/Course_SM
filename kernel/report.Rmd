@@ -104,7 +104,6 @@ k_{ii'} = r^dln(r), \text{ if } d=2,4,6,...\text{   .}
 $$
 Intuitively, RDB captures the similarity at point $y$ to a fixed point $x$ as a function of their distance. IPK considers combinations of the features of input samples (interaction features) to determine similarity. PSK ... ADD ONE SENTENCE TO DESCRIBE INTUITIVELY WHAT IT DOES.
 
-\subsubsection{Diagnostics}
 In both the cross-validation and the test set our predictions will be tested using the mean-squared prediction error ($MSPE$). $MSPE= \frac{1}{n}\sum^{n+q}_{i=n}(y_{i} - \hat{y}_{i})^{2}$, where $y_{i}$ is an output variable, and $\hat{y}_{i}$ is the predicted value over that period. In this example, $n$ is the number of observations in the training set, $q$ the number of observations in the test set. In each case a lower MSPE will be considered better predictive performance. 
 
 
@@ -208,6 +207,8 @@ while the proprietary kernel ridge regression with the optimal combination of ke
 
 ## References
 Evgeniou, T., Pontil, M., & Poggio, T. (1999). Regularization Networks and Support Vector Machines. Advances In Computational Mathematics, 13, 1-50. Retrieved 22 November 2021, from.
+
+Greene, W.H. (2003) Econometric Analysis, Prentice Hall
 
 Hastie, T., Tibshirani, R., & Friedman, J. (2008). The Elements of Statistical Learning: Data Mining, Inference, and Prediction (2nd ed.). Springer.
 
