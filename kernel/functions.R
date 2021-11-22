@@ -244,23 +244,23 @@ compare_params <- function(cv, hyperpars, my_kernel, lambdas, verbose = FALSE){
 }
 
 compare_kernels <- function(cv, lambdas, my_verbose=FALSE){
-  run_cv <- function(kernel, hyperpars){compare_params(cv, hyperpars, kernel, config_lambdas, verbose=my_verbose) %>% bind_rows(model_comparisons)}
+  make_cv_run <- function(kernel, hyperpars){compare_params(cv, hyperpars, kernel, config_lambdas, verbose=my_verbose) %>% bind_rows(model_comparisons)}
   model_comparisons <- tibble()
   
   print('Running RBF')
-  model1 <- run_cv(kernel_rbf, config_gammas)
+  model1 <- make_cv_run(kernel_rbf, config_gammas)
   model1['kernel'] <- 'RBF'
   
   print('Running Linear')
-  model2 <- run_cv(kernel_linear, NULL)
+  model2 <- make_cv_run(kernel_linear, c(1))
   model2['kernel'] <- 'linear'
-  
+
   print('Running inhomogeneous')
-  model3 <- run_cv(kernel_inhomogeneous, config_ds)
+  model3 <- make_cv_run(kernel_inhomogeneous, config_ds)
   model3['kernel'] <- 'inhomogeneous'
   
   print('Running polyspline')
-  model4 <- run_cv(kernel_polyspline, config_rs)
+  model4 <- make_cv_run(kernel_polyspline, config_rs)
   model4['kernel'] <- 'polyspline'
   
   model_comparisons <- model_comparisons %>% bind_rows(model1) %>% bind_rows(model2) %>% bind_rows(model3) %>% bind_rows(model4)
