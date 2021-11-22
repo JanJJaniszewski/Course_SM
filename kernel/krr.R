@@ -1,5 +1,5 @@
-source('./functions.R')
 source('./config.R')
+source('./functions.R')
 
 # Script -----------------------------------------------------------------------
 load(datapath)
@@ -7,7 +7,7 @@ load(datapath)
 df <- Airline
 df <- fastDummies::dummy_cols(df, select_columns = c('airline')) %>% dplyr::select(-airline)
 
-years_to_predict <- max(year) - config_years_to_predict_in_testset + 1
+years_to_predict <- max(df$year) - config_years_to_predict_in_testset + 1
 df_train <- df %>% filter(year < years_to_predict)
 df_test <- df %>% filter(year >= years_to_predict)
 
@@ -37,28 +37,14 @@ filter_by_year <- function(filteryear, df){df %>% filter(df$year != filteryear)}
 cv$train <- map(cv$test, ~ filter_by_year(mean(.$year), df_train))
 
 # Gridsearch -------------------------------------------------------------------
-crossv_cv <- tibble()
-for (config_lambda in config_lambdas){
-  for (config_gamma in config_gammas){
-    for (config_r in config_rs){
-      for (config_d in config_ds){
-        cv_lambda <- cv
-        cv_lambda$lambda <- config_lambda
-        cv_lambda$gamma <- config_gamma
-        cv_lambda$mse <- map2_dbl(cv$train, cv$test, ~ run_cv(.x, .y, config_gamma, config_lambda, config_r, config_d))
-        crossv_cv <- bind_rows(crossv_cv, cv_lambda)
-      }
-    }
-  }
-}
+crossv_output <- compare_kernels(cv, config_lambdas, my_verbose=T)
 
-crossv_output <- crossv_cv %>% select(c(lambda, gamma, mse)) %>% group_by(lambda, gamma) %>% summarise_all(mean)
-best_lambda <- crossv_output %>% filter(mse == min(crossv_output$mse)) %>% pull(lambda)
-best_gamma <- crossv_output %>% filter(mse == min(crossv_output$mse)) %>% pull(gamma)
+crossv_output <- crossv_output %>% select(c(lambda, hyperparameter, mse, kernel)) %>% group_by(kernel, hyperparameter, lambda) %>% summarise_all(mean) 
+best_run <- crossv_output %>% filter(mse == min(crossv_output$mse))
 
-print(best_lambda)
-print(best_gamma)
-print(min(crossv_output$mse))
+print('Best run')
+print(best_run)
+best_kernel_function <- kernel_rbf # To adjust manually, R is not able to save functions in dataframes
 
 # Final Testset ----------------------------------------------------------------
 X_train <- dplyr::select(df_train, -output) %>% as.matrix()
@@ -66,8 +52,8 @@ y_train <- df_train$output
 X_test <- dplyr::select(df_test, -output) %>% as.matrix()
 y_test <- df_test$output
 
-res <- krr(y_train, X_train, lambda = best_lambda, config_kernel, gamma = best_gamma, d=config_d)
-predictions <- predict_oos(X_test, X_train, res, config_kernel, gamma = best_gamma, d=config_d)
+res <- krr(y_train, X_train, hyperpar = best_run$hyperparameter, kernel_function = best_kernel_function, lambda=best_run$lambda)
+predictions <- predict_oos(X_test, X_train, res, best_kernel_function, hyperpar = best_run$hyperparameter)
 mse <- mean((predictions - y_test)^2)
 print(mse)
 
