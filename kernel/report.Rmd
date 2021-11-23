@@ -3,10 +3,9 @@ title: "Predicting Operational Efficiency Using Cost Metrics in the Airline Indu
 author: "Group 3"
 date: "18/11/2021"
 output:
+  bookdown::pdf_document2: default
   html_document:
     df_print: paged
-  pdf_document:
-    latex_engine: xelatex
 header-includes:
   - \usepackage{graphicx} 
   - \usepackage{float}       
@@ -23,6 +22,7 @@ knitr::opts_chunk$set(echo = FALSE)
 source('./krr.R')
 library(kableExtra)
 ```
+
 
 ## Introduction
 
@@ -42,7 +42,7 @@ Each observation consists of six variables relating to an airline and its costs:
 
 All observations are used for the study. As our approach relies on similar distributions and scales of our independent variables, all numeric independent variables are scaled to z-scores $(X – \mu) / \sigma$  where $\mu$ and $\sigma$ represent the mean and the standard deviation, respectively. This also that variables can be compared to each other.
 
-| Variable                                  | N |  $\mu$ |  SD  |   Mininimum |   25% |   50% |   75% |   Maximum |
+| Variable                                  | N |  $\mu$ |  SD  |   Min. |   25% |   50% |   75% |   Max. |
 |:------------------------------------------|------:|------:|-----:|------:|------:|------:|------:|------:|
 | Revenue per Passenger-Mile Flown (in USD) |    90 |  0.5  | 0.5  |  0.0  |  0.1  |  0.3  |  1.0 |  1.9 |
 | Total Cost (in million USD)               |    90 |  1123 | 1192 |    69 |   292 |   637 |  1346 |  4748 |
@@ -93,7 +93,7 @@ The solution to the optimization problem can be found with the function $k$, ($X
 
 Kernels not only allow us to find the minimization function, but are able to do so in a finite-dimensional subspace even though its respective RKHS is an infinite dimensional vector space (Vapnik, 1995). This is because $\mathcal{H}$ can be subdivided in $\mathcal{H}_{data}$, the $span$ {$k_{xi},...,k_{xn}$}, and $\mathcal{H}_{comp}$, its orthogonal complement. Each vector $w \in \mathcal{H}$ is $w = w_{data} + w_{comp}$. The prediction of all functions with the same $w_{data}$ agree on all training points, and as such is not affected by $w_{comp}$. As such, the norm $w$ is smallest if $w_{comp}=0$, thus always being an optimal solution. In this way, kernels allows us to combat the computational difficulties related to very large number of parameters.  
 
-In this analysis, four kernels are computed: the linear kernel (same as linear model), radial basis function (RBF) kernel, the inhomogeneous polynomial kernel (IPK), and the polyhomogeneous spline kernel (PSK). Different kernels are used to compare their ability to predict the data. Their functions are:
+In this analysis, four kernels are computed: the linear kernel, radial basis function (RBF) kernel, the inhomogeneous polynomial kernel (IPK), and the polyhomogeneous spline kernel (PSK). Different kernels are used to compare their ability to predict the data. Their functions are:
 
 \begin{equation} \label{eq:5}
 \text{ RBF:   }k_{ii'}= e^{(-\gamma||x_i-x_i'||^2)}\text{, with hyperparameter}  \gamma>0.
@@ -110,7 +110,7 @@ In this analysis, four kernels are computed: the linear kernel (same as linear m
 $$
 k_{ii'} = r^dln(r), \text{ if } d=2,4,6,...\text{   .}
 $$
-Intuitively, RBF captures the similarity at point $y$ to a fixed point $x$ as a function of their distance. IPK considers combinations of the features of input samples (interaction features) to determine similarity.
+Intuitively, the RBF kernel captures the similarity at point $y$ to a fixed point $x$ as a function of their distance. IPK considers combinations of the features of input samples (interaction features) to determine similarity.
 
 Before conducting any in-depth analysis of the model, data was split into a training/validation dataset (first 12 years of data) and a testset (3 most recent years of data). Best models were first found using gridsearch and cross-validation on the training/validation dataset; the best models were then again trained on the training dataset and finally tested on the holdout testset. 
 
@@ -121,10 +121,11 @@ In both the cross-validation and the test set our predictions were tested using 
 ## Results
 The four kernels produced a holistic picture of the possibilities of kernel based models and KRR in particular. This allowed us to make an informed decision on which kernels should be used in order to predict operational efficiency of airlines.
 
-Cross-validation showed that the KRR kernel which best suits our data is the RBF kernel with $\lambda = 0.001$ and $\gamma = 0.05$ ($MSE_{CV} = 0.0005$, $MSPE = 0.003$; for best model comparison by kernel, see Table 2; for testset predictions of best model, see \ref{qqplot}). The cross-validation searched for the best model among 230 different models with the parameter $\lambda$ as one of 0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50 and 100. Furthermore, we defined:
+Cross-validation showed that the KRR kernel which best suits our data is the RBF kernel with $\lambda = 0.001$ and $\gamma = 0.05$ ($MSE_{CV} = 0.0005$, $MSPE = 0.003$; for best model comparison by kernel, see Table 2; for testset predictions of best model, see Figure \@ref(fig:qq-plot)). The cross-validation searched for the best model among 230 different models with the parameter $\lambda$ as one of 0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50 and 100. Furthermore, we defined:
 \begin{itemize}
 \item For RBF kernel models: $\gamma$ as one of 0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 2, 4, 5, and 10
 \item For polynomial and nonhomoegenous kernel models: degrees as one of 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10. 
+\end{itemize}
 
 | Kernel type                                  | CV-MSPE |  Test-MSPE |  $\lambda$  | Hyperparameter
 |:------------------------------------------|------:|------:|-----:|------:|------:|--:|
@@ -134,19 +135,22 @@ Cross-validation showed that the KRR kernel which best suits our data is the RBF
 | RBF                          |    0.0005 |  0.003 | 0.001 | 0.05 | 
 Table 2: Model Fits (CV-MSE: Cross-validation Mean Squared Error, MSPE: Mean Squared Prediction Error.)
 
-
-
-```{r, qqplot, fig.cap="Observed efficiency vs. predicted efficiency by best model"}
+```{r qq-plot, fig.cap="Observed efficiency vs. predicted efficiency by best model", echo=FALSE}
 res <- krr(y_train, X_train, hyperpar = 0.05, kernel_function = kernel_rbf, lambda=0.001)
 predictions <- predict_oos(X_test, X_train, res, kernel_rbf, hyperpar = 0.05)
 mse <- mean((predictions - y_test)^2)
+t1 <- tibble(test = y_test, pred = predictions)
+t1 %>% ggplot(aes(x = test, y=pred)) + 
+  geom_point() +
+  labs(x ="Predicted efficiency", y = "Observed efficiency") +
+    theme(text = element_text(size=20)) +
+  geom_abline(intercept = 0, slope = 1) 
 
-plot(y_test, predictions, ylab = "Observed efficiency", xlab = "Predicted efficiency") + lines(x = c(0,100), y = c(0,100))
 ```
 
-The linear kernel achieved the best fit for low values of lambda $\lambda$, with the result optimized at $\lambda = 0.1$ ($MSPE_{CV} = 0.0026, MSPE_{test} = 0.008$; for more information, see Figure \ref{linearcomparison}). For the KRR with RBF kernel,the lowest measured MSE was achieved using $\lambda = 0.001$ and $\gamma = 0.05$ ($MSPE_{CV} = 0.00048, MSPE_{test} = 0.0026$; for more information, see Figure \ref{rbfcomparison}). The inhomogeneous kernel and the polyspline kernel reached optima at $\lambda = 1$ and $degrees = 2$ (Inhomogeneous kernel: $MSPE_{CV} = 0.0009$ $MSPE_{test}= 0.0090$, see \ref{inhomogeneouscomparison}; polynomial spline kernel: $MSPE_{CV} = 0.0012$ and $MSPE_{test} = 0.152$, see Figure \ref{polysplinecomparison}).
+The linear kernel achieved the best fit for low values of lambda $\lambda$, with the result optimized at $\lambda = 0.1$ ($MSPE_{CV} = 0.0026, MSPE_{test} = 0.008$; for more information, see Figure \@ref(fig:linearcomparison)). For the KRR with RBF kernel,the lowest measured MSE was achieved using $\lambda = 0.001$ and $\gamma = 0.05$ ($MSPE_{CV} = 0.0005, MSPE_{test} = 0.0026$; for more information, see Figure \@ref(fig:rbfcomparison)). The inhomogeneous kernel and the polyspline kernel reached optima at $\lambda = 1$ and $degrees = 2$ (Inhomogeneous kernel: $MSPE_{CV} = 0.0009$ $MSPE_{test}= 0.0090$, see Figure \@ref(fig:inhomogeneouscomparison); polynomial spline kernel: $MSPE_{CV} = 0.0012$ and $MSPE_{test} = 0.152$, see Figure \@ref(fig:polysplinecomparison)).
 
-```{r  linearcomparison, fig.cap = "KRR with linear kernel: Impact of the choice of lambda parameter on the CV-MSPE"}
+```{r linearcomparison, fig.cap = "KRR with linear kernel: Impact of the choice of lambda parameter on the CV-MSPE", echo=FALSE}
 crossv_sub <- crossv_output %>% filter(kernel == 'linear')
 crossv_sub %>%
   mutate(lambda=log(lambda)) %>%
@@ -157,7 +161,7 @@ crossv_sub %>%
   theme(text = element_text(size=20))
 ```
 
-```{r  rbfcomparison, fig.cap = "KRR with RBF kernel: CV-MSPE for different combinations of lambda and gamma"}
+```{r rbfcomparison, fig.cap = "KRR with RBF kernel: CV-MSPE for different combinations of lambda and gamma", echo=FALSE}
 crossv_sub <- crossv_output %>% filter(kernel == 'RBF')
 crossv_sub %>%
   mutate(hyperparameter = log(hyperparameter), lambda=log(lambda)) %>%
@@ -169,7 +173,7 @@ crossv_sub %>%
 ```
 
   
-```{r  inhomogeneouscomparison, fig.cap = "KRR with inhomogeneous kernel: CV-MSPE for different combinations of lambda and d"}
+```{r  inhomogeneouscomparison, fig.cap = "KRR with inhomogeneous kernel: CV-MSPE for different combinations of lambda and d", echo=FALSE}
 crossv_sub <- crossv_output %>% filter(kernel == 'inhomogeneous')
 crossv_sub %>%
   mutate(hyperparameter = hyperparameter, lambda=log(lambda)) %>%
@@ -180,7 +184,7 @@ crossv_sub %>%
   scale_fill_gradient(low = "darkgreen", high = "darkred")
 ```
 
-```{r  polysplinecomparison, fig.cap = "KRR with polynomial spline kernel: CV-MSPE for different combinations of lambda and r"}
+```{r  polysplinecomparison, fig.cap = "KRR with polynomial spline kernel: CV-MSPE for different combinations of lambda and r", echo=FALSE}
 crossv_sub <- crossv_output %>% filter(kernel == 'polyspline')
 crossv_sub %>%
   mutate(hyperparameter = hyperparameter, lambda=log(lambda)) %>%
@@ -195,13 +199,22 @@ To further deepen our confidence in the models, we also compared them to the KRR
 
 The results indicate a superior performance of the linear kernel KRR over the performance the linear implementation of the OLS regression $MSPE_{OLS} = 0.572, MSPE_{KRR_{Linear}} = 0.008$. 
 
+```{r}
 # TODO: CAIO, PLEASE CHECK IF THIS IS CORRECTLY STATED BASED ON WHAT YOU WROTE; I DID NOT FULLY GRASP WHAT SHOULD HAVE BEEN HERE; ALSO ADD THE PLOTS!
-Also, our RBF kernel based KRR outperforms the implementation of the dsmle package, although performance gains were lower than in comparison with the OLS regression ($MSPE_{DSMLE} = 0.0070, MSPE_{RBF} = 0.0005$, for testset predictions of DSMLE model, see Figure \ref{qqplotdsmle}).
+```
+Also, our RBF kernel based KRR outperforms the implementation of the dsmle package, although performance gains were lower than in comparison with the OLS regression ($MSPE_{DSMLE} = 0.0070, MSPE_{RBF} = 0.0005$, for testset predictions of DSMLE model, see Figure \@ref(qqplotdsmle)).
 
-```{r, qqplotdsmle, fig.cap="Observed efficiency vs. predicted efficiency by DSMLE model"}
+```{r qqplotdsmle, fig.cap="Observed efficiency vs. predicted efficiency by DSMLE model"}
 # HAVE TO DEFINE pred_oos first!
+#t1 <- tibble(test = y_test, pred = pred_oos) # PLOT IS INCORRECT, UNCOMMENT THIS LINE AND REPLACE pred_oos with predictions of DSMLE mdoel
+t1 %>% ggplot(aes(x = test, y=pred)) + 
+  geom_point() +
+  labs(x ="Predicted efficiency", y = "Observed efficiency") +
+    theme(text = element_text(size=20)) +
+  geom_abline(intercept = 0, slope = 1) 
 
-# plot(y_test, pred_oos, ylab = "Observed efficiency", xlab = "Predicted efficiency")  + lines(x = c(0,100), y = c(0,100))
+
+# DO NOT USE THIS AS PRODUCES WEIRD OUTPUT WHEN KNITTED: plot(y_test, pred_oos, ylab = "Observed efficiency", xlab = "Predicted efficiency")  + lines(x = c(0,100), y = c(0,100))
 ```
 
 ## Discussion
