@@ -9,7 +9,6 @@ output:
 header-includes:
   - \usepackage{graphicx} 
   - \usepackage{float}       
-  - \usepackage[ngerman]{babel} 
   - \usepackage{fancyhdr}
   - \usepackage{hyperref}
   - \pagenumbering{gobble}
@@ -123,7 +122,7 @@ The four kernels produced a holistic picture of the possibilities of kernel base
 
 Cross-validation showed that the KRR kernel which best suits our data is the RBF kernel with $\lambda = 0.001$ and $\gamma = 0.05$ ($MSE_{CV} = 0.0005$, $MSPE = 0.003$; for best model comparison by kernel, see Table 2; for testset predictions of best model, see Figure \@ref(fig:qq-plot)). The cross-validation searched for the best model among 230 different models with the parameter $\lambda$ as one of 0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50 and 100. Furthermore, we defined:
 \begin{itemize}
-\item For RBF kernel models: $\gamma$ as one of 0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 2, 4, 5, and 10
+\item For RBF kernel models: $\gamma$ as one of 0.1, 0.25, 0.5, 0.75, 1, 2, 4, 5, 7, and 10
 \item For polynomial and nonhomoegenous kernel models: degree as one of 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10
 \end{itemize}
 
@@ -144,7 +143,8 @@ t1 %>% ggplot(aes(x = test, y=pred)) +
   geom_point() +
   labs(x ="Predicted efficiency", y = "Observed efficiency") +
     theme(text = element_text(size=20)) +
-  geom_abline(intercept = 0, slope = 1) 
+  geom_abline(intercept = 0, slope = 1) +
+  coord_fixed(xlim =c(0,2) , ylim=c(0,2))
 
 ```
 
@@ -195,23 +195,29 @@ crossv_sub %>%
   scale_fill_gradient(low = "darkgreen", high = "darkred")
 ```
 
-To further deepen our confidence in the models, we also compared them to the KRR model implemented by Groenen and Schonees (2018) as part of their R package "dsmle" as well as to an ordinary least squares (OLS) regression as implemented in the R package "stats" (R Core Team, 2021). 
+To further deepen our confidence in the models, we also compared the KRR model with the best mix of kernel function and hyperparameters, with the one implemented by Groenen and Schonees (2018) as part of their R package "dsmle" (for that, we use the same mis of kernel function and hyperparameters) as well as to an ordinary least squares (OLS) regression as implemented in the R package "stats" (R Core Team, 2021). 
 
-The results indicate a superior performance of the linear kernel KRR over the performance the linear implementation of the OLS regression $MSPE_{OLS} = 0.572, MSPE_{KRR_{Linear}} = 0.008$. 
+The results indicate a superior performance of the linear kernel KRR over the performance the linear implementation of the OLS regression $MSPE_{OLS} = 0.572, MSPE_{RBF} = 0.0005$. 
 
 ```{r}
-# TODO: CAIO, PLEASE CHECK IF THIS IS CORRECTLY STATED BASED ON WHAT YOU WROTE; I DID NOT FULLY GRASP WHAT SHOULD HAVE BEEN HERE; ALSO ADD THE PLOTS!
+# TODO: CAIO, PLEASE CHECK IF THIS IS CORRECTLY STATED BASED ON WHAT YOU WROTE; I DID NOT FULLY GRASP WHAT SHOULD HAVE BEEN HERE; ALSO ADD THE PLOTS! Done
 ```
-Also, our RBF kernel based KRR outperforms the implementation of the dsmle package, although performance gains were lower than in comparison with the OLS regression ($MSPE_{DSMLE} = 0.0070, MSPE_{RBF} = 0.0005$, for testset predictions of DSMLE model, see Figure \@ref(qqplotdsmle)).
+Also, our RBF kernel based KRR outperforms the implementation of the dsmle package, although performance gains were lower than in comparison with the OLS regression ($MSPE_{DSMLE} = 0.0070, MSPE_{RBF} = 0.0005$, for testset predictions of DSMLE model, see \@ref(fig:qq-plot) and \@ref(fig:qqplotdsmle)).
 
 ```{r qqplotdsmle, fig.cap="Observed efficiency vs. predicted efficiency by DSMLE model"}
+res_pkg <-
+  dsmle::krr(y_train, X_train, config_k, kernel.type = "RBF", kernel.RBF.sigma = 0.05, lambda = 0.001)
+pred_oos <- predict(res_pkg, X_test)
+
 # HAVE TO DEFINE pred_oos first!
-#t1 <- tibble(test = y_test, pred = pred_oos) # PLOT IS INCORRECT, UNCOMMENT THIS LINE AND REPLACE pred_oos with predictions of DSMLE mdoel
-t1 %>% ggplot(aes(x = test, y=pred)) + 
+t1 <- tibble(test = y_test, pred = pred_oos) 
+
+t1 %>% ggplot(aes(x = y_test, y=pred_oos)) + 
   geom_point() +
   labs(x ="Predicted efficiency", y = "Observed efficiency") +
     theme(text = element_text(size=20)) +
-  geom_abline(intercept = 0, slope = 1) 
+  geom_abline(intercept = 0, slope = 1) +
+  coord_fixed(xlim =c(0,2) , ylim=c(0,2))
 
 
 # DO NOT USE THIS AS PRODUCES WEIRD OUTPUT WHEN KNITTED: plot(y_test, pred_oos, ylab = "Observed efficiency", xlab = "Predicted efficiency")  + lines(x = c(0,100), y = c(0,100))
@@ -222,7 +228,7 @@ The aim of this research was to predict operational efficiency of airlines using
 
 Although our research correctly identified model quality, it only measured model performance based on one cross-validation approach and on limited amounts of data (year-based cross validation with $N=90$), which - depending on different argumentation - could potentially not be the best approach. This could have been potentially harming to the quality of our results. However, as the differences between model performances of the different models are quite large, we are still confident that RBF kernel based KRR is the best model to predict airline operational efficiency.
 
-Based on our research shortcomings, we would suggest that future research should focus on increasing amounts of data to analyze and on developing the best appraoch for cross-validation of the models. Also, future research should define the needs of potential stakeholders in order to define new in-depth research questions as well as potential new variables that should be included in the model (e.g., airline marketing, airline financial policy).
+Based on our research shortcomings, we would suggest that future research should focus on increasing amounts of data to analyze and on developing the best approach for cross-validation of the models. Also, future research should define the needs of potential stakeholders in order to define new in-depth research questions as well as potential new variables that should be included in the model (e.g., airline marketing, airline financial policy).
 
 Nervertheless, these results are a first step towards an improved, machine learning based decision making strategy, which allows decision makers to make better informed decisions on operational efficiency of airlines without having in-depth knowledge of the company's KPI's. This is an exciting step towards the development of new methods to predict airline company performance based on cost related metrics, which will finally reduce the risk of wrong decisions in the airline industry.
 
