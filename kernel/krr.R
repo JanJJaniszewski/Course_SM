@@ -78,6 +78,8 @@ crossv_sub %>%
   ggplot(data=., aes(lambda, mse)) + 
   geom_line()
 
+crossv_output %>% group_by(hyperparameter, lambda, kernel) %>% summarise(n()) %>% nrow
+
 # Comparison -------------------------------------------------------------------
 ## LM --------------------------------------------------------------------------
 lm_model <- lm(y_train ~ ., data=as.data.frame(cbind(X_train, y_train)))

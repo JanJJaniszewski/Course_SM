@@ -26,34 +26,32 @@ library(kableExtra)
 
 ## Introduction
 
-The system-wide global commercial airlines constitute a high-cost industry, with expenses of approximately 795 and 484 billion dollars globally in 2019 and 2020 (Iata, 2021). This is why the revenue margins are highly dependent on its operational efficiency, the metric that measures the efficiency of profit earned as a function of operating costs. An industry is operationally efficient if conditions exist that allow participants to execute transactions and receive services at a price that equates fairly to the actual costs required to provide them. Airlines can become more efficient through improvement in a variety of areas, from which aircraft and crew utilization, payload, and fuel consumption are key. In this way, resources and the efficient use of such resources have a key impact in predicting profitability in airline firms. 
+Commercial airlines constantly fight with high costs; even in the COVID year 2020 in which airlines were not flying at full capacity, the global costs of commercial airlines amounted to as much as 484 billion dollars (Iata, 2021). Especially in such difficult years, in which most airlines have lower than expected revenues with stable and high fix costs, airlines fight for survival. When commercial airlines struggle, one solution which quickly comes to mind is the potential improvement of their operational efficiency (i.e. the ratio of operating costs and revenue). Following this logic, airlines have already found numerous ways to improve operational efficiency, such as improving crew utilization, increasing payload on flights, or lowering fuel consumption; but there need to be new ways found to increase the likelihood of survival on this highly competitive market. Continuing this train of thought, we would like to introduce new ways to further improve commercial airlines efficiency through the use of machine learning based cost efficiency predictions.
 
-The aim of this research is thus to predict operational efficiency in the airline industry by using key cost metrics. The research uses kernels as a method that allows for non-linearity, making the predictions more flexible although probably at the cost of bias. The predictions are relevant for both managers and stakeholders. On the one hand, they are key for managers to choose relevant strategies for the consolidation of the firms. On the other hand, the information allows for a better understanding of the predictors of financial development in the industry and provides more stable financial decisions. 
+In particular, the aim of this research was to predict operational efficiency of an airline using key cost metrics (e.g. load factor, fuel price) as predictors. These predictions are very valuable for airlines as they can become important key primary indicators (KPIs) to inform management about future company performance as well as the overall health of the industry. In this way, they provide an important instrument to base strategic company choices on sound, data based predictions instead of relying on solely traditional KPI's such as profit or cost averages.
 
-The paper is structured as follows. In section 2, the airline data used for prediction. In section 3, the choice of kernel functions as a method is justified and outlined. In section 3, the results.... Finally, it is concluded that... 
-DISCUSSION PERSON, PLEASE ADD TWO RELEVANT SENTENCES HERE (ONE FOR RESULTS AND ONE FOR DISCUSSION) TO SUMMARIZE THE SECTIONS.
+To improve model predictions beyond the quality of usual regression models, our research used kernel ridge regression (KRR) which incorporates non-linear relationships between the predicted variable and its predictors into its structure, making the predictions even more flexible. 
 
+This paper first explores the data used for predictions. Then, the choice for the KRR as well as its four different kernels is outlined and justified. Next, results provide an insight into the quality of the different kernels and the main KRR model. Finally, the paper concludes with a discussion on the findings and the different implications of those.
 
 ## Data
 
 The dataset, obtained through Greene (2003), contains empirical evidence relating to the cost of the airline industry. It consists of a panel of 6 observations of Airlines in the United States over 15 years- from 1970 to 1984, yielding 90 observations in total. Data was collected for all six firms in the same fifteen years. 
 
-Each observation consists of six variables relating to cost:  airline, year,  pf (fuel price), lf (load factor, which is the average capacity utilization of the fleet), output (revenue, measured in revenue per passenger-mile flown), and cost (total cost per $1,000). Fuel price, load factor, output, and cost are numerical variables. Airline is treated as an indicator variable that classifies each airline in a distinct category. We control for the year of observation; however, this is done by using a continuous variable instead of individual dummies, as this allows the prediction of future years. All summary statistics are shown in Table 1.
+Each observation consists of six variables relating to an airline and its costs: airline name (airline), financial year (year), fuel price (pf), average capacity utilization of the airline's fleet (i.e., load factor; lf), airline revenue per passenger-mile flown (output), total cost in $1000 (cost). Variable types differ between variables; fuel price, load factor, output, year, and cost are numeric variables while airline is treated as an categorical variable. As we are mostly interested in predicting operational efficiency of airlines for future years, we control for the year of observation, treating it as a continuous variable (for more information, see summary statistics in Table 1).
 
-All observations are used for the study. All variables except the airline indicator variable are scaled to create z-scores $(X – \mu) / \sigma$  where $\mu$ and $\sigma$ represent the mean and the standard deviation, respectively. Scaling ensures that the variables are comparable, as our approach relies on the distance between observations.
+All observations are used for the study. As our approach relies on similar distributions and scales of our independent variables, all numeric independent variables are scaled to z-scores $(X – \mu) / \sigma$  where $\mu$ and $\sigma$ represent the mean and the standard deviation, respectively. This also that variables can be compared to each other.
 
-
-| Variable                                  | Count |  Mean |  SD  |   Mininimum |   25% |   50% |   75% |   Maximum |
+| Variable                                  | N |  $\mu$ |  SD  |   Mininimum |   25% |   50% |   75% |   Maximum |
 |:------------------------------------------|------:|------:|-----:|------:|------:|------:|------:|------:|
-| Revenue per Passenger-Mile Flown (in USD) |    90 |  0.54 | 0.53 |  0.04 |  0.14 |  0.31 |  0.95 |  1.94 |
+| Revenue per Passenger-Mile Flown (in USD) |    90 |  0.5  | 0.5  |  0.0  |  0.1  |  0.3  |  1.0 |  1.9 |
 | Total Cost (in million USD)               |    90 |  1123 | 1192 |    69 |   292 |   637 |  1346 |  4748 |
 | Fuel Price                                |    90 |   472 |  330 |   104 |   130 |   357 |   850 |  1016 |
 | Load Factor                               |    90 | 56.0% | 5.3% | 43.2% | 52.9% | 56.6% | 59.5% | 67.6% |
-Table 1: Summary Statistics (SD: Standard deviation)
+Table 1: Summary Statistics of the data used (SD: Standard deviation)
 
 ## Methodology
-
-In the aim to increase the flexibility of the model- to decrease variance at the cost of bias-, we move beyond the standard linear regression model and use basis expansion models, popular in machine learning for their ability to extract more predictive information from the data set. In particular, kernels are used as a method that allows the introduction of non-linear components to linear regression, thus maintaining the convenience and ability of linear methods to not overfit. Kernels do so by embedding the points of any space into a new space where linearity can be applied via a non-linear feature map. The embedding computation is not made directly but through the kernel functions, built to be equivalent to the scalar products of the transformation (Hastie, Tibshirani, Friedman, 2008). In the analysis, polynomial kernels, radial basis function kernels and polyharmonic spline kernels are used.
+In order to increase the prediction quality of our model, we move beyond the standard linear regression model. To increase model flexibility (i.e., to find a balance between variance and bias of predictions), we use basis expansion models (kernels). These models are popular in machine learning for their ability to extract more predictive information from provided datasets. In particular, kernels are used as a method that allows the introduction of non-linear components to linear regression, thus maintaining the convenience and ability of linear methods to not overfit. Kernels do so by embedding the points of any space into a new space where linearity can be applied via a non-linear feature map. The embedding computation is not made directly but through the kernel functions, built to be equivalent to the scalar products of the transformation (Hastie, Tibshirani, Friedman, 2008). In the analysis, linear kernels, polynomial kernels, radial basis function kernels and polyharmonic spline kernels are used.
 
 Specifically, let $X \rightarrow R$ be the space that contains the data points $x_1,...,x_n \in X$, and $\Phi: X \rightarrow R^d$ a feature map where $\Phi$ denotes the $n \times d$ matrix containing data points $\Phi(x_i)$ as rows. Then, a symmetric function $k: X \times X \rightarrow R^d$ is a kernel function if for all $n \geq 1$ in $X$ and $c_1,...,c_n \in R^d$, it holds that: 
 
@@ -93,9 +91,9 @@ $$
 
 The solution to the optimization problem can be found with the function $k$, ($X \times X$) with $k(x_i,y_i)=<\Phi(x_i),\Phi(x_j)>$.
 
-Kernels not only allow us to find the minimization functional, but are able to do so in a finite-dimensional subspace even though its respective RKHS is an infinite dimensional vector space (Vapnik, 1995). This is because $\mathcal{H}$ can be subdivided in $\mathcal{H}_{data}$, the $span$ {$k_{xi},...,k_{xn}$}, and $\mathcal{H}_{comp}$, its orthogonal complement. Each vector $w \in \mathcal{H}$ is $w = w_{data} + w_{comp}$. The prediction of all functions with the same $w_{data}$ agree on all training points, and as such is not affected by $w_{comp}$. As such, the norm $w$ is smallest if $w_{comp}=0$, thus always being an optimal solution. In this way, kernels allows us to combat the computational difficulties related to very large number of parameters.  
+Kernels not only allow us to find the minimization function, but are able to do so in a finite-dimensional subspace even though its respective RKHS is an infinite dimensional vector space (Vapnik, 1995). This is because $\mathcal{H}$ can be subdivided in $\mathcal{H}_{data}$, the $span$ {$k_{xi},...,k_{xn}$}, and $\mathcal{H}_{comp}$, its orthogonal complement. Each vector $w \in \mathcal{H}$ is $w = w_{data} + w_{comp}$. The prediction of all functions with the same $w_{data}$ agree on all training points, and as such is not affected by $w_{comp}$. As such, the norm $w$ is smallest if $w_{comp}=0$, thus always being an optimal solution. In this way, kernels allows us to combat the computational difficulties related to very large number of parameters.  
 
-In this analysis, three kernels are computed: the radial basis function (RBF) kernel, the inhomogeneous polynomial kernel (IPK), and the polyhomogeneous spline kernel (PSK). Different kernels are used to compare their ability to predict the data. Their functions are:
+In this analysis, four kernels are computed: the linear kernel (same as linear model), radial basis function (RBF) kernel, the inhomogeneous polynomial kernel (IPK), and the polyhomogeneous spline kernel (PSK). Different kernels are used to compare their ability to predict the data. Their functions are:
 
 \begin{equation} \label{eq:5}
 \text{ RBF:   }k_{ii'}= e^{(-\gamma||x_i-x_i'||^2)}\text{, with hyperparameter}  \gamma>0.
@@ -114,92 +112,121 @@ k_{ii'} = r^dln(r), \text{ if } d=2,4,6,...\text{   .}
 $$
 Intuitively, RBF captures the similarity at point $y$ to a fixed point $x$ as a function of their distance. IPK considers combinations of the features of input samples (interaction features) to determine similarity.
 
-The models include hyperparameters for the Ridge Regression and for the kernel function (expect the liner kernel). A 20-fold cross-validation will be used to search for the hyperparameters that optimizes each model. The models will be later trained on the whole training data set (using the optimal parameters) and evaluated using the test data. As data at hand includes a time-series component, we must split it according to that nature: the test data comprehends the last 3 years of observations and the rest is used for training purposes. The folds in the cross-validation are also grouped by year.
+Before conducting any in-depth analysis of the model, data was split into a training/validation dataset (first 12 years of data) and a testset (3 most recent years of data). Best models were first found using gridsearch and cross-validation on the training/validation dataset; the best models were then again trained on the training dataset and finally tested on the holdout testset. 
 
-In both the cross-validation and the test set our predictions will be tested using the mean-squared prediction error ($MSPE$). $MSPE= \frac{1}{n}\sum^{n+q}_{i=n}(y_{i} - \hat{y}_{i})^{2}$, where $y_{i}$ is an output variable, and $\hat{y}_{i}$ is the predicted value over that period. In this example, $n$ is the number of observations in the training set, $q$ the number of observations in the test set. In each case a lower MSPE will be considered better predictive performance. 
+Gridsearch was performed to find the best model hyperparameters. The search space of the gridsearch included a KRR parameter (i.e., $\lambda$) and different hyperparameters to define the kernel function (depended on the model). To find the best kernel/parameter combination, a 12-fold cross-validation was conducted for each parameter combination. Contrary to usual n-fold cross-validation, we defined the validation datasets based on year, with only entries in the validation dataset which belonged to the respective year. This way, we defined 11 validation splits (one between each year), which resulted in 12 validation datasets (one per year), hence 12-fold cross-validation. Using the optimal parameters from the gridsearch, the models were again trained on the whole training data set and evaluated using the test dataset.
 
+In both the cross-validation and the test set our predictions were tested using the mean-squared prediction error ($MSPE$). $MSPE= \frac{1}{n}\sum^{n+q}_{i=n}(y_{i} - \hat{y}_{i})^{2}$, where $y_{i}$ is an output variable, and $\hat{y}_{i}$ is the predicted value over that period. In this example, $n$ is the number of observations in the training set, $q$ the number of observations in the test set. In each case a lower MSPE will be considered better predictive performance. 
 
 ## Results
+The four kernels produced a holistic picture of the possibilities of kernel based models and KRR in particular. This allowed us to make an informed decision on which kernels should be used in order to predict operational efficiency of airlines.
 
-In the cross-validation step, the candidate values for $\lambda$ were 0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50 and 100, the candidates for $\gamma$ were 0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 2, 4, 5 and 10. The candidates for the degrees for the polyspline and the nonhomogeneous kernel were 1, 2, 3, 4, 5, 6, 7, 8, 9 and 10. The best combinations for each kernel togheter with the cross-validation MSE (CV-MSE) and the mean squared prediction error (MSPE).
+Cross-validation showed that the KRR kernel which best suits our data is the RBF kernel with $\lambda = 0.001$ and $\gamma = 0.05$ ($MSE_{CV} = 0.0005$, $MSPE = 0.003$; for best model comparison by kernel, see Table 2; for testset predictions of best model, see \ref{qqplot}). The cross-validation searched for the best model among 230 different models with the parameter $\lambda$ as one of 0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50 and 100. Furthermore, we defined:
+\begin{itemize}
+\item For RBF kernel models: $\gamma$ as one of 0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 2, 4, 5, and 10
+\item For polynomial and nonhomoegenous kernel models: degrees as one of 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10. 
 
-
-
-| kernel                                  | CV-MSE |  MSPE |  $\lambda$  |   Hyperparameter
+| Kernel type                                  | CV-MSPE |  Test-MSPE |  $\lambda$  | Hyperparameter
 |:------------------------------------------|------:|------:|-----:|------:|------:|--:|
-| Linear                       |    0.0026|  0.008 | 0.1 |  - | 
-| Nonhomogeneous               |    0.00093 |  0.009 | 1 |    2 |  
-| Polyspline                   |    0.0012 |   0.152 |  1 |   2 |      
-| RBF                          |    0.00048 | 0.0026 | 0.001 | 0.05 | 
+| Linear                       |    0.0026 |  0.008 | 0.100 |  -   | 
+| Inhomogeneous               |    0.0009 |  0.009 | 1.000 | 2.00 |  
+| Polyspline                   |    0.0012 |  0.152 | 1.000 | 2.00 |      
+| RBF                          |    0.0005 |  0.003 | 0.001 | 0.05 | 
 Table 2: Model Fits (CV-MSE: Cross-validation Mean Squared Error, MSPE: Mean Squared Prediction Error.)
 
 
-The linear kernel achieves the best fit for low values of lambda $\lambda$, with the result optimized at $\lambda = 0.1$ ($MSE_{CV} = 0.0026, MSE_{test} = 0.008$; for more information, see Figure \ref{linearcomparison}). For the KRR with RBF kernel,the lowest measured MSE was achieved using $\lambda = 0.001$ and $\gamma = 0.05$ ($MSE_{CV} = 0.00048, MSE_{test} = 0.0026$(for more information, see Figure \ref{rbfcomparison}). The nonhomogeneous kernel and the polyspline kernel are optimized with $\lambda$ 1 and degress equals to 2. This combination gives us a $MSE_{CV}$ of
-0.0009 and $MSE_{test}$ of 0.0090 for the nonhomogeneous kernel (see \ref{inhomogeneouscomparison}) and $MSE_{CV}$ of
-0.0012 and $MSE_{test}$ of 0.152 for the polyspline (see Figure \ref{polysplinecomparison}).
 
-```{r  linearcomparison, fig.cap = "KRR with linear kernel: Impact of the choice of lambda parameter on the MSE"}
+```{r, qqplot, fig.cap="Observed efficiency vs. predicted efficiency by best model"}
+res <- krr(y_train, X_train, hyperpar = 0.05, kernel_function = kernel_rbf, lambda=0.001)
+predictions <- predict_oos(X_test, X_train, res, kernel_rbf, hyperpar = 0.05)
+mse <- mean((predictions - y_test)^2)
+
+plot(y_test, predictions, ylab = "Observed efficiency", xlab = "Predicted efficiency") + lines(x = c(0,100), y = c(0,100))
+```
+
+The linear kernel achieved the best fit for low values of lambda $\lambda$, with the result optimized at $\lambda = 0.1$ ($MSPE_{CV} = 0.0026, MSPE_{test} = 0.008$; for more information, see Figure \ref{linearcomparison}). For the KRR with RBF kernel,the lowest measured MSE was achieved using $\lambda = 0.001$ and $\gamma = 0.05$ ($MSPE_{CV} = 0.00048, MSPE_{test} = 0.0026$; for more information, see Figure \ref{rbfcomparison}). The inhomogeneous kernel and the polyspline kernel reached optima at $\lambda = 1$ and $degrees = 2$ (Inhomogeneous kernel: $MSPE_{CV} = 0.0009$ $MSPE_{test}= 0.0090$, see \ref{inhomogeneouscomparison}; polynomial spline kernel: $MSPE_{CV} = 0.0012$ and $MSPE_{test} = 0.152$, see Figure \ref{polysplinecomparison}).
+
+```{r  linearcomparison, fig.cap = "KRR with linear kernel: Impact of the choice of lambda parameter on the CV-MSPE"}
 crossv_sub <- crossv_output %>% filter(kernel == 'linear')
 crossv_sub %>%
   mutate(lambda=log(lambda)) %>%
   group_by(lambda) %>% summarise(mse = mean(mse)) %>%
   ggplot(data=., aes(lambda, mse)) + 
   labs(x ="Log(Lambda)", y = "MSE") +
-  geom_line()
+  geom_line() +
+  theme(text = element_text(size=20))
 ```
 
-```{r  rbfcomparison, fig.cap = "KRR with RBF kernel: MSE for different combinations of lambda and gamma"}
+```{r  rbfcomparison, fig.cap = "KRR with RBF kernel: CV-MSPE for different combinations of lambda and gamma"}
 crossv_sub <- crossv_output %>% filter(kernel == 'RBF')
 crossv_sub %>%
   mutate(hyperparameter = log(hyperparameter), lambda=log(lambda)) %>%
   ggplot(data=., aes(lambda, hyperparameter, fill= mse)) + 
   geom_tile() + 
   labs(x ="Log(Lambda)", y = "Log(Gamma)") +
+  theme(text = element_text(size=20))+
   scale_fill_gradient(low = "darkgreen", high = "darkred")
 ```
 
   
-```{r  inhomogeneouscomparison, fig.cap = "KRR with inhomogeneous kernel: MSE for different combinations of lambda and d"}
+```{r  inhomogeneouscomparison, fig.cap = "KRR with inhomogeneous kernel: CV-MSPE for different combinations of lambda and d"}
 crossv_sub <- crossv_output %>% filter(kernel == 'inhomogeneous')
 crossv_sub %>%
   mutate(hyperparameter = hyperparameter, lambda=log(lambda)) %>%
   ggplot(data=., aes(lambda, hyperparameter, fill= mse)) + 
   geom_tile() + 
   labs(x ="Log(Lambda)", y = "Degree") +
+  theme(text = element_text(size=20))+
   scale_fill_gradient(low = "darkgreen", high = "darkred")
 ```
 
-```{r  polysplinecomparison, fig.cap = "KRR with polynomial spline kernel: MSE for different combinations of lambda and r"}
+```{r  polysplinecomparison, fig.cap = "KRR with polynomial spline kernel: CV-MSPE for different combinations of lambda and r"}
 crossv_sub <- crossv_output %>% filter(kernel == 'polyspline')
 crossv_sub %>%
   mutate(hyperparameter = hyperparameter, lambda=log(lambda)) %>%
   ggplot(data=., aes(lambda, hyperparameter, fill= mse)) + 
   geom_tile() + 
   labs(x ="Log(Lambda)", y = "R") +
+  theme(text = element_text(size=20))+
   scale_fill_gradient(low = "darkgreen", high = "darkred")
 ```
 
-The kernel ridge regression was compared with the linear regression model and to the implementation available in the dsmle package.
+To further deepen our confidence in the models, we also compared them to the KRR model implemented by Groenen and Schonees (2018) as part of their R package "dsmle" as well as to an ordinary least squares (OLS) regression as implemented in the R package "stats" (R Core Team, 2021). 
 
-The results indicate a good performance of the proprietary implementation: the linear regression showed a MSE of 0.572,
-while the proprietary kernel ridge regression with the optimal combination of kernel and hyperparameters (RBF; parameters set at $\gamma = 0.05$ and $\lambda = 0.001$) predicts with $MSPE = 0.0026$. The dsmle implementation (using the same parameters and kernel) yields a $MSPE$ of 0.30. As further comparison, the combination 'inhomogeneous kernel', degree of 2 and lambda equals to 1 yields a MSE of 0.01729 for the proprietary implementation and 0.0070 for the MSE of the dsmle package. 
+The results indicate a superior performance of the linear kernel KRR over the performance the linear implementation of the OLS regression $MSPE_{OLS} = 0.572, MSPE_{KRR_{Linear}} = 0.008$. 
+
+# TODO: CAIO, PLEASE CHECK IF THIS IS CORRECTLY STATED BASED ON WHAT YOU WROTE; I DID NOT FULLY GRASP WHAT SHOULD HAVE BEEN HERE; ALSO ADD THE PLOTS!
+Also, our RBF kernel based KRR outperforms the implementation of the dsmle package, although performance gains were lower than in comparison with the OLS regression ($MSPE_{DSMLE} = 0.0070, MSPE_{RBF} = 0.0005$, for testset predictions of DSMLE model, see Figure \ref{qqplotdsmle}).
+
+```{r, qqplotdsmle, fig.cap="Observed efficiency vs. predicted efficiency by DSMLE model"}
+# HAVE TO DEFINE pred_oos first!
+
+# plot(y_test, pred_oos, ylab = "Observed efficiency", xlab = "Predicted efficiency")  + lines(x = c(0,100), y = c(0,100))
+```
 
 ## Discussion
+The aim of this research was to predict operational efficiency of airlines using their key cost metrics. This succeeded as airline efficiency predictions provided by the implemented models closely reflected real values for operational efficiency. Furthermore, the research made an in-depth analysis of the different kernels which should be used to predict operational efficiency. Based on this analysis, it was found that the KRR with RBF kernel is superior to all other kernel KRR's and that its predictions are better than random ($R^2=0.96$). 
 
-The aim of this research was to predict operational efficiency in the airline industry by using key cost metrics. Using kernel ridge regressions, it is concluded that predictions of operational efficiency using cost metrics are close to their real values. Among the kernels, the radial basis function is recommended for its performance. Using this model, it is concluded that these predictions are significantly better than random ($R^2=0.96$). This model allows managers to predict revenues given the most common costs in the airline industry. Furthermore, stakeholders can understand and anticipate revenues given certain cost structures, thus reducing risk. In future research, it would be interesting to include more variables that affect cost in which managers have a high degree of control, such as airline marketing and product policy, airline financial policy, corporate strategy, and the quality of management. Including these dimensions in the predictions will allow for analyses of operational efficiency where there is room for change and improvement.
+Although our research correctly identified model quality, it only measured model performance based on one cross-validation approach and on limited amounts of data (year-based cross validation with $N=90$), which - depending on different argumentation - could potentially not be the best approach. This could have been potentially harming to the quality of our results. However, as the differences between model performances of the different models are quite large, we are still confident that RBF kernel based KRR is the best model to predict airline operational efficiency.
 
+Based on our research shortcomings, we would suggest that future research should focus on increasing amounts of data to analyze and on developing the best appraoch for cross-validation of the models. Also, future research should define the needs of potential stakeholders in order to define new in-depth research questions as well as potential new variables that should be included in the model (e.g., airline marketing, airline financial policy).
 
-
+Nervertheless, these results are a first step towards an improved, machine learning based decision making strategy, which allows decision makers to make better informed decisions on operational efficiency of airlines without having in-depth knowledge of the company's KPI's. This is an exciting step towards the development of new methods to predict airline company performance based on cost related metrics, which will finally reduce the risk of wrong decisions in the airline industry.
 
 ## References
 Evgeniou, T., Pontil, M., & Poggio, T. (1999). Regularization Networks and Support Vector Machines. Advances In Computational Mathematics, 13, 1-50. Retrieved 22 November 2021, from.
 
 Greene, W.H. (2003) Econometric Analysis, Prentice Hall
 
+Groenen, P.J.F. & Schonees, P. (2018). dsmle: Data Science & Machine Learning Essentials. R package version 1.0-4.
+
 Hastie, T., Tibshirani, R., & Friedman, J. (2008). The Elements of Statistical Learning: Data Mining, Inference, and Prediction (2nd ed.). Springer.
 
 IATA Economics. (2021). Industry Statistics. IATA.
 
+R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria.
+  URL https://www.R-project.org/.
+  
 Vapnik, V. (1995). The Nature of Statistical Learning Theory (2nd ed.). Springer.
 
 ## Appendix I: Code
