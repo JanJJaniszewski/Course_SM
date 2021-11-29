@@ -41,6 +41,26 @@ define_best_split <- function(df){
     column_best <- column_comp %>% filter(gini == min(gini))
     col_bests <- col_bests %>% add_row(column_best)
   }
-  return(col_bests)
+  best_column <- col_bests %>% filter(gini == min(col_bests$gini)) %>% select(column) 
+  best_split <- col_bests %>% filter(gini == min(col_bests$gini)) %>% select(split) 
+  split_list <- list('b_column' = best_column, 'b_split' = best_split)
+  return(split_list)
+}
+
+grow_tree <- function(max_depth, min_samples_split, df){
+  df0 <- df
+  k <- 0
+  while(k < max_depth){
+    k <- k + 1
+    for(i in 2^(k-1):2^(k)-1){
+      res <- define_best_split(paste0("df",i))
+      b_column <- res$bcolumn
+      b_split <- res$bsplit
+      df[which(sd$bcolumn > b_split)]
+    }
+    best
+  }
+  
 }
 define_best_split(df)
+
