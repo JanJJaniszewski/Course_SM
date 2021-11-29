@@ -1,0 +1,46 @@
+library(pacman)
+p_load(dplyr)
+p_load(datasets)
+data(iris)
+set.seed(1)
+df <- iris
+df$Species <- df$Species == 'versicolor'
+get_gini <- function(df, y_name){
+  filter_positives <- df[,y_name] == 1
+  filter_negatives <- df[,y_name] == 0
+  n <- nrow(df)
+  n_positives <- df[filter_positives,] %>% nrow
+  n_negatives <- df[filter_negatives,] %>% nrow
+  g <- 1 - (n_positives/n)^2 - (n_negatives/n)^2
+  return(g)
+}
+define_best_split <- function(df){
+  X_names <- df %>% select(-Species) %>% names
+  y <- df %>% pull(Species)
+  n <- nrow(df)
+  col_bests <- tibble(gini = numeric(), split = numeric(), column = character())
+  for(colname in X_names){
+    #find mid-point vector
+    uniques <- df[,colname] %>% sort %>% unique
+    column_splits <- c()
+    column_ginis <- c()
+    for(i in 1:length(uniques)-1){
+      column_splits[i] = mean(uniques[i:i+1])
+    }
+    for(i in 1:length(column_splits)){
+      split1 <- df[df[,colname] < column_splits[i],]
+      split2 <- df[df[,colname] >= column_splits[i],]
+      # count Gini information
+      g_root <- get_gini(df, 'Species')
+      g_split1 <- get_gini(split1, 'Species')
+      g_split2 <- get_gini(split2, 'Species')
+      g_gain <- g_root - g_split1 * (nrow(split1)/n) - g_split2 * (nrow(split2)/n)
+      column_ginis[i] <- g_gain
+    }
+    column_comp <- tibble(split = column_splits, gini = column_ginis, column=colname)
+    column_best <- column_comp %>% filter(gini == min(gini))
+    col_bests <- col_bests %>% add_row(column_best)
+  }
+  return(col_bests)
+}
+define_best_split(df)
