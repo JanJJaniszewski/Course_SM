@@ -18,7 +18,7 @@ define_best_split <- function(df){
   X_names <- df %>% select(-Species) %>% names
   y <- df %>% pull(Species)
   n <- nrow(df)
-  col_bests <- tibble(gini = numeric(), split = numeric(), column = character())
+  col_bests <- tibble(gini_gain = numeric(), split = numeric(), column = character())
   for(colname in X_names){
     #find mid-point vector
     uniques <- df[,colname] %>% sort %>% unique
@@ -37,31 +37,45 @@ define_best_split <- function(df){
       g_gain <- g_root - g_split1 * (nrow(split1)/n) - g_split2 * (nrow(split2)/n)
       column_ginis[i] <- g_gain
     }
-    column_comp <- tibble(split = column_splits, gini = column_ginis, column=colname)
-    column_best <- column_comp %>% filter(gini == min(gini))
+    column_comp <- tibble(split = column_splits, gini_gain = column_ginis, column=colname)
+    column_best <- column_comp %>% filter(gini_gain == max(gini_gain))
     col_bests <- col_bests %>% add_row(column_best)
   }
-  best_column <- col_bests %>% filter(gini == min(col_bests$gini)) %>% select(column) 
-  best_split <- col_bests %>% filter(gini == min(col_bests$gini)) %>% select(split) 
-  split_list <- list('b_column' = best_column, 'b_split' = best_split)
+  split_list <- col_bests %>% filter(gini_gain == max(gini_gain)) %>% .[1,]
   return(split_list)
 }
 
-grow_tree <- function(max_depth, min_samples_split, df){
-  df0 <- df
-  k <- 0
-  while(k < max_depth){
-    k <- k + 1
-    for(i in 2^(k-1):2^(k)-1){
-      res <- define_best_split(paste0("df",i))
-      b_column <- res$bcolumn
-      b_split <- res$bsplit
-      paste0("df",i*2)[which(paste0("df",i)$bcolumn > b_split)]
-      paste0("df",i*2 + 1)[which(paste0("df",i)$bcolumn > b_split)]
-    }
-    best
-  }
-  
-}
-define_best_split(df)
+provide_best_split_results_with_predictions <- function(df, splitno=1, max_splitno=4^2){
+  if(((splitno * 2 + 1) <= max_splitno) & (nrow(df) > 1)){
+    best_split <- define_best_split(df)
+    colname <- best_split$column[1]
+    best_split <- best_split$split[1]
+    split1 <- df[df[,colname] < best_split,]
+    split2 <- df[df[,colname] >= best_split,]
 
+    # Printing progress
+    print('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Split node')
+    print(paste('Number:', splitno))
+    print(paste('Split:', best_split))
+    print(paste('Split1 N:', nrow(split1)))
+    print(paste('Split2 N:', nrow(split2)))
+
+    split1 <- provide_best_split_results_with_predictions(split1, splitno * 2, max_splitno)
+    split2 <- provide_best_split_results_with_predictions(split2, (splitno * 2) + 1, max_splitno)
+    out <- rbind(split1, split2)
+    return(out)
+  }else{
+    out <- df
+    out$majority_decision <- round(mean(out$Species))
+    out$leaf_number <- splitno
+    
+    print('-------------------------------- Final node')
+    print(paste('Number:', splitno))
+    print(paste('Mean:', mean(out$Species) %>% round(2)))
+    print(paste('N:', nrow(out)))
+    
+    return (out)
+  }
+}
+
+output <- provide_best_split_results_with_predictions(df)
