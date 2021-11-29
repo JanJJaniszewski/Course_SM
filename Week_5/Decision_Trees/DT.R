@@ -56,7 +56,8 @@ grow_tree <- function(max_depth, min_samples_split, df){
       res <- define_best_split(paste0("df",i))
       b_column <- res$bcolumn
       b_split <- res$bsplit
-      df[which(sd$bcolumn > b_split)]
+      paste0("df",i*2)[which(paste0("df",i)$bcolumn > b_split)]
+      paste0("df",i*2 + 1)[which(paste0("df",i)$bcolumn > b_split)]
     }
     best
   }
