@@ -1,0 +1,80 @@
+---
+title: "Decision Tree"
+author: "Group3"
+date: "11/29/2021"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+header-includes:
+- \usepackage{graphicx}
+- \usepackage{float}
+- \usepackage{fancyhdr}
+- \usepackage{hyperref}
+- \pagenumbering{gobble}
+- \usepackage{booktabs}
+- \usepackage{natbib}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+source('Decision_Tree.R')
+library(kableExtra)
+```
+\section{Introduction}
+
+\section{Data}
+The code's construction was done by iterating over the Iris dataset. The code was further tested in the Airline dataset, to garantee is generalizes well.
+
+\section{Results}
+The decision tree produced by the algorithm (from now on refered to as Decision Tree), with a max number of leaves equal to 32 and the minimum sample size of 5 produces the confusion matrix from Table 1:
+
+\begin{table}[h]
+\begin{tabular}{l|l|c|c|c}
+\multicolumn{2}{c}{}&\multicolumn{2}{c}{Observed}&\\
+\cline{3-4}
+\multicolumn{2}{c|}{}&Don't Int. Smoke&Int. Smoke&\multicolumn{1}{c}{Total}\\
+\cline{2-4}
+\multirow{2}{*}{Predicted}&Don'tInt. Smoke & $92$ & $18$ & $110$\\
+\cline{2-4}
+& Int. Smoke & $21$ & $69$ & $90$\\
+\cline{2-4}
+\multicolumn{1}{c}{} & \multicolumn{1}{c}{Total} & \multicolumn{1}{c}{$113$} & \multicolumn{    1}{c}{$87$} & \multicolumn{1}{c}{$200$}\\
+\end{tabular}
+\caption{\label{tab:table-name}Confusion Matrix for the Decision Tree}
+\end{table}
+
+The Decision Tree was intended to overfit, and, above the complexity induced by this set of parameters, there was no improvement in the fit statistics and the confusion matrix was stable. Another decision tree was fit using the Rpart packge from R (call it Rpart Decision Tree). The confusion matrix, created using this second model, is depicted in Table 3. The complexity of the model was also increased to obtain an overfitting tree, and the results stabilized at max depth of 8 and minimum samples to do a split equal to 5.
+
+\begin{table}[h]
+\begin{tabular}{l|l|c|c|c}
+\multicolumn{2}{c}{}&\multicolumn{2}{c}{Observed}&\\
+\cline{3-4}
+\multicolumn{2}{c|}{}&Don't Int. Smoke&Int. Smoke&\multicolumn{1}{c}{Total}\\
+\cline{2-4}
+\multirow{2}{*}{Predicted}&Don'tInt. Smoke & $97$ & $27$ & $124$\\
+\cline{2-4}
+& Int. Smoke & $16$ & $60$ & $76$\\
+\cline{2-4}
+\multicolumn{1}{c}{} & \multicolumn{1}{c}{Total} & \multicolumn{1}{c}{$113$} & \multicolumn{    1}{c}{$87$} & \multicolumn{1}{c}{$200$}\\
+\end{tabular}
+\caption{\label{tab:table-name}Confusion Matrix for the Rpart Package}
+\end{table}
+
+The Decision Tree is able to identify better the students that intend to smoke, while the Rpart Decision Tree does a better job prediction the ones that do not intent to smoke. Such tradeoff between better predicting one of the classes is typical of classification problems. 
+
+\begin{table}[h]
+\begin{tabular}{lll}
+\hline
+            & Decision Tree & Rpart \\ \hline
+Accuracy    & 0.80          & 0.78  \\
+Sensitivity & 0.81          & 0.86  \\
+Specificity & 0.79          & 0.69 
+\end{tabular}
+\caption{\label{tab:table-name}Fit Statistics for The Decision Tree and the Rpart Decision Tree}
+\end{table}
+
+The information on Table 3 shows that the performance of the algorithms is comparable since the tradeoff between predicting one of the classes appears now in the tradeoff between sensitivity and specificity. The overfitting models seem to have similar performance.
+
+
+\section{Discussion}
