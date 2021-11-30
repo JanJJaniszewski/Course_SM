@@ -21,13 +21,11 @@ knitr::opts_chunk$set(echo = FALSE)
 source('Decision_Tree.R')
 library(kableExtra)
 ```
-\section{Introduction}
-
 \section{Data}
-The code's construction was done by iterating over the Iris dataset. The code was further tested in the Airline dataset, to garantee is generalizes well.
+The code's construction was done by iterating over the Iris dataset. The code was further tested in the smoke dataset, so it could be compared to the results obtained during the lecture.
 
 \section{Results}
-The decision tree produced by the algorithm (from now on refered to as Decision Tree), with a max number of leaves equal to 32 and the minimum sample size of 5 produces the confusion matrix from Table 1:
+The decision tree produced by the algorithm (from now on refered to as Decision Tree), with a max number of leaves equal to 16 and the minimum sample size of 5 produces the confusion matrix from Table 1:
 
 \begin{table}[h]
 \begin{tabular}{l|l|c|c|c}
@@ -35,9 +33,9 @@ The decision tree produced by the algorithm (from now on refered to as Decision 
 \cline{3-4}
 \multicolumn{2}{c|}{}&Don't Int. Smoke&Int. Smoke&\multicolumn{1}{c}{Total}\\
 \cline{2-4}
-\multirow{2}{*}{Predicted}&Don'tInt. Smoke & $92$ & $18$ & $110$\\
+\multirow{2}{*}{Predicted}&Don'tInt. Smoke & $97$ & $27$ & $124$\\
 \cline{2-4}
-& Int. Smoke & $21$ & $69$ & $90$\\
+& Int. Smoke & $16$ & $60$ & $76$\\
 \cline{2-4}
 \multicolumn{1}{c}{} & \multicolumn{1}{c}{Total} & \multicolumn{1}{c}{$113$} & \multicolumn{    1}{c}{$87$} & \multicolumn{1}{c}{$200$}\\
 \end{tabular}
@@ -61,20 +59,24 @@ The Decision Tree was intended to overfit, and, above the complexity induced by 
 \caption{\label{tab:table-name}Confusion Matrix for the Rpart Package}
 \end{table}
 
-The Decision Tree is able to identify better the students that intend to smoke, while the Rpart Decision Tree does a better job prediction the ones that do not intent to smoke. Such tradeoff between better predicting one of the classes is typical of classification problems. 
+Both implementations generated the same confusion matrix (see Table 1 and 2) and fit statistics (see Table 3).
 
 \begin{table}[h]
 \begin{tabular}{lll}
 \hline
             & Decision Tree & Rpart \\ \hline
-Accuracy    & 0.80          & 0.78  \\
-Sensitivity & 0.81          & 0.86  \\
-Specificity & 0.79          & 0.69 
+Accuracy    & 0.78          & 0.78  \\
+Sensitivity & 0.86          & 0.86  \\
+Specificity & 0.69          & 0.69 
 \end{tabular}
 \caption{\label{tab:table-name}Fit Statistics for The Decision Tree and the Rpart Decision Tree}
 \end{table}
 
-The information on Table 3 shows that the performance of the algorithms is comparable since the tradeoff between predicting one of the classes appears now in the tradeoff between sensitivity and specificity. The overfitting models seem to have similar performance.
+How the tree partitions the data (rules), the prevalence of class 1 (intention to smoke equals to 'yes') and the size of each split can be seen in the diagram on Figure 1. The variable the algorithm selects for the first split is 'Friends smoke', and it is capacle of screening the data in two groups with starkly distinct prevalence for the target, 17% who have no friends who smoke are willing to smoke, while 65% of the ones that have friends who smoke intends to give it a try. The next splits for both groups is alcohol consumption per month: for the group with no smoking friends, drinking less than 4 times a month results in a group with 11% of people intending to smoke, while drinking 4 or more puts them in a group with 27%. Although the same variable is used in the second split for the group with smoking friends, the split here occurs at 2 times a month: the group that drinks 1 or less times a month is associated with a 34% prevalence of intention to smoke, while its counterpart can be associated with a prevalence of 79%. For the last 4 splits, the variable associated are two: 'whether the subject has lied to his/her parents' for the groups stemming from the one that did not have friends that smoke and 'age' for the groups stemming from the one with no friends that smoke. It is interesting to notice that here the responses disagree as lying to parents is both associated with a larger prevalence of intention to smoke for the group that consumes alcohol less than 4 times per month and with a smaller prevalence for the other group. A similar effect can be pointed out for the group with friends that smoke. The group that drinks more often has a boost in prevalence of intention to smoke if they are 16 or older, but has a reduction of prevalence if they come from the group that drinks less often.
+\begin{figure}[h]
+\includegraphics[width=15cm]{decisionTree.png}
+\centering
+\caption{Decision Tree: Partitions, Prevalences and Split Size}
+    \label{fig:mesh1}
+\end{figure}
 
-
-\section{Discussion}
