@@ -45,7 +45,7 @@ define_best_split <- function(df){
   return(split_list)
 }
 
-provide_best_split_results_with_predictions <- function(df, splitno=1, max_splitno=4^2){
+provide_best_split_results_with_predictions <- function(df, splitno=1, max_splitno=3^2){
   if(((splitno * 2 + 1) <= max_splitno) & (nrow(df) > 1)){
     best_split <- define_best_split(df)
     colname <- best_split$column[1]
@@ -56,9 +56,10 @@ provide_best_split_results_with_predictions <- function(df, splitno=1, max_split
     # Printing progress
     print('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Split node')
     print(paste('Number:', splitno))
-    print(paste('Split:', best_split))
-    print(paste('Split1 N:', nrow(split1)))
-    print(paste('Split2 N:', nrow(split2)))
+    print(paste('Splitrule: Split 1 <', best_split, 'and Split 2 >=', best_split))
+    print(paste('Splitcolumn:', colname))
+    print(paste('First Split (', splitno * 2, '): N =', nrow(split1)))
+    print(paste('Second Split (', splitno * 2 + 1, '): N =', nrow(split2)))
 
     split1 <- provide_best_split_results_with_predictions(split1, splitno * 2, max_splitno)
     split2 <- provide_best_split_results_with_predictions(split2, (splitno * 2) + 1, max_splitno)
