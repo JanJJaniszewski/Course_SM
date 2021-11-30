@@ -63,9 +63,12 @@ provide_best_split_results_with_predictions <- function(df, splitno=1, max_split
     # Printing progress
     print('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Split node')
     print(paste('Number:', splitno))
-    print(paste('Split:', best_split))
-    print(paste('Split1 N:', nrow(split1)))
-    print(paste('Split2 N:', nrow(split2)))
+    print(paste('Splitrule: Split 1 <', best_split, 'and Split 2 >=', best_split))
+    print(paste('Splitcolumn:', colname))
+    print(paste('First Split (', splitno * 2, '): N =', nrow(split1)))
+    print(paste('Spl.1 Class 1 (', splitno * 2, '): N =', (sum(split1$target))/nrow(split1)))
+    print(paste('Second Split (', splitno * 2 + 1, '): N =', nrow(split2)))
+    print(paste('Spl.2 Class 1 (', splitno * 2, '): N =', (sum(split2$target))/nrow(split2)))
     
     split1 <- provide_best_split_results_with_predictions(split1, splitno * 2, max_splitno, min_samples)
     split2 <- provide_best_split_results_with_predictions(split2, (splitno * 2) + 1, max_splitno, min_samples)
@@ -110,7 +113,7 @@ df_2$Species <- df_2$Species == 'versicolor'
 names(df_2)[names(df_2) == "Species"] <- "target"
 ################################################################################
 
-output <- provide_best_split_results_with_predictions(df, max_splitno=4^3, min_samples = 5)
+output <- provide_best_split_results_with_predictions(df, max_splitno=4^2, min_samples = 5)
 #output2 <- provide_best_split_results_with_predictions(df_2, max_splitno=4^3, min_samples = 5)
 confusionMatrix(table(output$majority_decision, output$target))
 output %>% group_by(leaf_number) %>% count()
@@ -129,5 +132,4 @@ mytree <- rpart(
 predictions <- predict(mytree, type = "class")
 
 confusionMatrix(table(predictions,df$target))
-getwd()
-sum(df$target)
+
